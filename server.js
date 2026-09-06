@@ -1152,12 +1152,24 @@ app.get("/results", requireLogin, async (req, res) => {
   }
 });
 
-app.get("/admin/create-member", requireLogin, (req, res) => {
+app.get("/admin/create-member", requireLogin, async (req, res) => {
   if (req.session.user.role !== "organizer") {
     return res.send("Access denied");
   }
 
-  res.render("create-member");
+  try {
+    const result = await pool.query(
+      "SELECT id, member_no, name FROM members ORDER BY name"
+    );
+
+    res.render("create-member", {
+      members: result.rows
+    });
+
+  } catch (err) {
+    console.error("LOAD MEMBERS ERROR:", err);
+    res.status(500).send(err.message);
+  }
 });
 
 app.post("/admin/create-member", requireLogin, async (req, res) => {
