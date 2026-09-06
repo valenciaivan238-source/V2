@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results</title>
+</head>
+<body>
 
+<h1>Results</h1>
+
+<table border="1">
+
+<tr>
+    <th>Race</th>
+    <th>Ring No</th>
+    <th>Owner</th>
+</tr>
+
+<% results.forEach(r => { %>
+<tr>
+    <td><%= r.name %></td>
+    <td><%= r.ring_no %></td>
+    <td><%= r.owner %></td>
+</tr>
+<% }) %>
+
+</table>
+
+</body>
+</html>
