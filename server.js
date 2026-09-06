@@ -93,6 +93,9 @@ app.post("/login", async (req, res) => {
 });
 app.get("/dashboard", async (req, res) => {
   try {
+    if (!req.session.user) {
+    return res.redirect("/");
+    }
     const members = await pool.query(
       "SELECT COUNT(*) FROM members"
     );
