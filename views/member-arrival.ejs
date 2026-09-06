@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Arrival</title>
+</head>
+
+<body>
+
+<h1>Submit Pigeon Arrival</h1>
+
+<h2>
+  <%= race.name %>
+</h2>
+
+<p>
+  <strong>Race Date:</strong>
+  <%= race.race_date %>
+</p>
+
+<hr>
+
+<% if (entries.length === 0) { %>
+
+  <p>
+    You have no pigeons entered in this race.
+  </p>
+
+<% } else { %>
+
+  <% entries.forEach(entry => { %>
+
+    <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px;">
+
+      <h3>
+        Ring No: <%= entry.ring_no %>
+      </h3>
+
+      <p>
+        Pigeon:
+        <%= entry.pigeon_name || "Unnamed" %>
+      </p>
+
+      <% if (entry.arrival_time) { %>
+
+        <p>
+          <strong>Arrival Submitted:</strong>
+          <%= entry.arrival_time %>
+        </p>
+
+        <% if (entry.verified) { %>
+
+          <p>
+            <strong>Verified</strong>
+          </p>
+
+        <% } else { %>
+
+          <p>
+            Waiting for organizer verification.
+          </p>
+
+        <% } %>
+
+      <% } else { %>
+
+        <form
+          action="/member/races/<%= race.id %>/arrival"
+          method="POST"
+        >
+
+          <input
+            type="hidden"
+            name="entry_id"
+            value="<%= entry.entry_id %>"
+          >
+
+          <label>
+            5-Digit Verification Code
+          </label>
+
+          <br>
+
+          <input
+            type="text"
+            name="verification_code"
+            maxlength="5"
+            minlength="5"
+            pattern="[0-9]{5}"
+            inputmode="numeric"
+            required
+          >
+
+          <br><br>
+
+          <label>
+            Arrival Time
+          </label>
+
+          <br>
+
+          <input
+            type="time"
+            name="arrival_time"
+            step="1"
+            required
+          >
+
+          <br><br>
+
+          <button type="submit">
+            Submit Arrival
+          </button>
+
+        </form>
+
+      <% } %>
+
+    </div>
+
+  <% }) %>
+
+<% } %>
+
+<br>
+
+<a href="/dashboard">
+  ← Back to Dashboard
+</a>
+
+</body>
+</html>
