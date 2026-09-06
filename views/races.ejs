@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Races</title>
+</head>
+<body>
 
+<h1>Races</h1>
+
+<table border="1">
+
+<tr>
+    <th>Name</th>
+    <th>Date</th>
+    <th>Distance</th>
+</tr>
+
+<% races.forEach(r => { %>
+<tr>
+    <td><%= r.name %></td>
+    <td><%= r.race_date %></td>
+    <td><%= r.distance_km %> km</td>
+</tr>
+<% }) %>
+
+</table>
+
+</body>
+</html>
