@@ -981,7 +981,6 @@ app.post(
 );
 
 app.get("/results", requireLogin, async (req, res) => {
-app.get("/results", requireLogin, async (req, res) => {
   try {
 
     const result = await pool.query(`
