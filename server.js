@@ -93,6 +93,26 @@ async function updateEntriesTable() {
 
 updateEntriesTable();
 
+async function updateRacesTable() {
+  try {
+    await pool.query(`
+      ALTER TABLE races
+      ADD COLUMN IF NOT EXISTS release_latitude NUMERIC(10,6)
+    `);
+
+    await pool.query(`
+      ALTER TABLE races
+      ADD COLUMN IF NOT EXISTS release_longitude NUMERIC(10,6)
+    `);
+
+    console.log("Races table updated");
+  } catch (err) {
+    console.error("Races table update error:", err);
+  }
+}
+
+updateRacesTable();
+
 const PgStore = connectPgSimple(session);
 
 app.set("view engine", "ejs");
