@@ -423,6 +423,8 @@ app.post("/races/new", requireLogin, async (req, res) => {
       name,
       category,
       release_point,
+      release_latitude,
+      release_longitude,
       distance_km,
       race_date,
       release_time,
