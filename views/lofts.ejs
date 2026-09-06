@@ -40,12 +40,15 @@
 
     <td>
 
-        <% if (user && user.role === "organizer") { %>
+        <% if (
+            user &&
+            (user.role === "organizer" || user.role === "admin")
+        ) { %>
 
             <form
                 method="POST"
                 action="/members/<%= member.id %>/delete"
-                onsubmit="return confirm('Delete this member, their loft, pigeons, and account?');"
+                onsubmit="return confirm('Delete this member, their loft, pigeons, and account? This cannot be undone.');"
                 style="display:inline;"
             >
 
