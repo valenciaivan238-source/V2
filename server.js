@@ -290,8 +290,11 @@ app.get("/members", requireLogin, async (req, res) => {
 
 app.post("/members/:id/delete", requireLogin, async (req, res) => {
 
-  if (req.session.user.role !== "organizer") {
-    return res.status(403).send("Access denied");
+  if (
+  req.session.user.role !== "organizer" &&
+  req.session.user.role !== "admin"
+) {
+  return res.status(403).send("Access denied");
   }
 
   const memberId = req.params.id;
