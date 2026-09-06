@@ -1,4 +1,4 @@
-DATABASE_URL=postgresql://username:password@host:5432/database
-SESSION_SECRET=change-this-secret
+DATABASE_URL=postgresql://mprphc_db_user:3pduPPoJJieTxIoCbcReU8tgg3daQK7Z@dpg-dadp751t0dsc73fh6mvg-a.virginia-postgres.render.com/mprphc_db
+SESSION_SECRET=MPRPHC_2026_SUPER_SECRET_8f9s7df98sdf79sdf
 NODE_ENV=production
 PORT=3000
