@@ -198,6 +198,7 @@ app.get("/dashboard", requireLogin, async (req, res) => {
     );
 
     res.render("dashboard", {
+      user: req.session.user,
       members: members.rows[0].count,
       pigeons: pigeons.rows[0].count,
       races: races.rows[0].count
