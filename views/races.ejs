@@ -1,18 +1,22 @@
-<% if (user && user.role === "organizer") { %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Races</title>
+</head>
+
+<body>
+
+<h1>Races</h1>
+
+<% if (user && (user.role === "organizer" || user.role === "admin")) { %>
 
   <a href="/races/new">
     <button type="button">+ Create New Race</button>
   </a>
 
 <% } %>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Races</title>
-</head>
-<body>
 
-<h1>Races</h1>
+<br><br>
 
 <table border="1">
 
@@ -20,14 +24,31 @@
     <th>Name</th>
     <th>Date</th>
     <th>Distance</th>
+    <th>Action</th>
 </tr>
 
 <% races.forEach(r => { %>
+
 <tr>
     <td><%= r.name %></td>
-    <td><%= r.race_date %></td>
-    <td><%= r.distance_km %> km</td>
+
+    <td>
+        <%= r.race_date || "N/A" %>
+    </td>
+
+    <td>
+        <%= r.distance_km || "N/A" %> km
+    </td>
+
+    <td>
+        <a href="/races/<%= r.id %>/entries">
+            <button type="button">
+                Race Entries
+            </button>
+        </a>
+    </td>
 </tr>
+
 <% }) %>
 
 </table>
