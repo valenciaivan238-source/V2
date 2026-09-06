@@ -164,7 +164,7 @@ app.get("/dashboard", requireLogin, async (req, res) => {
   }
 });
 
-app.get("/members", async (req, res) => {
+app.get("/members", requireLogin, async (req, res) => {
   const result = await pool.query(
     "SELECT * FROM members ORDER BY id DESC"
   );
@@ -174,7 +174,7 @@ app.get("/members", async (req, res) => {
   });
 });
 
-app.get("/pigeons", async (req, res) => {
+app.get("/pigeons", requireLogin, async (req, res) => {
   const result = await pool.query(`
     SELECT pigeons.*, members.name AS owner
     FROM pigeons
@@ -188,7 +188,7 @@ app.get("/pigeons", async (req, res) => {
   });
 });
 
-app.get("/races", async (req, res) => {
+app.get("/races", requireLogin, async (req, res) => {
   const result = await pool.query(
     "SELECT * FROM races ORDER BY id DESC"
   );
@@ -198,7 +198,7 @@ app.get("/races", async (req, res) => {
   });
 });
 
-app.get("/results", async (req, res) => {
+app.get("/results", requireLogin, async (req, res) => {
   const result = await pool.query(`
     SELECT
       races.name,
