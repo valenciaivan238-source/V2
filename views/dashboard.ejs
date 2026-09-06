@@ -53,6 +53,17 @@
   Add Member Account
 </a>
 
+<% if (user && user.role === "member") { %>
+
+  <h2>My Race Entries</h2>
+
+  <a href="/member/races">
+    <button type="button">
+      Submit Pigeon Arrival
+    </button>
+  </a>
+
+<% } %>
 <% if(user.role === "organizer"){ %>
 
 <a href="/members/new" class="btn btn-success">
