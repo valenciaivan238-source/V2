@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Race Entries</title>
+
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Race Entries</h1>
+
+    <h2><%= race.name %></h2>
+
+    <p>
+      <strong>Category:</strong>
+      <%= race.category || "N/A" %>
+    </p>
+
+    <p>
+      <strong>Release Point:</strong>
+      <%= race.release_point || "N/A" %>
+    </p>
+
+    <p>
+      <strong>Distance:</strong>
+      <%= race.distance_km || "N/A" %> KM
+    </p>
+
+    <p>
+      <strong>Race Date:</strong>
+      <%= race.race_date || "N/A" %>
+    </p>
+
+    <hr>
+
+    <h2>Add Pigeon</h2>
+
+    <form
+      action="/races/<%= race.id %>/entries"
+      method="POST"
+    >
+
+      <label for="pigeon_id">
+        Select Pigeon
+      </label>
+
+      <select
+        id="pigeon_id"
+        name="pigeon_id"
+        required
+      >
+
+        <option value="">
+          -- Select Pigeon --
+        </option>
+
+        <% pigeons.forEach(pigeon => { %>
+
+          <option value="<%= pigeon.id %>">
+            <%= pigeon.ring_no %>
+            -
+            <%= pigeon.name || "Unnamed" %>
+            -
+            <%= pigeon.owner %>
+            (<%= pigeon.member_no %>)
+          </option>
+
+        <% }) %>
+
+      </select>
+
+      <br><br>
+
+      <button type="submit">
+        Add to Race
+      </button>
+
+    </form>
+
+    <hr>
+
+    <h2>
+      Registered Pigeons
+      (<%= entries.length %>)
+    </h2>
+
+    <% if (entries.length === 0) { %>
+
+      <p>No pigeons have been entered in this race yet.</p>
+
+    <% } else { %>
+
+      <table border="1" cellpadding="8" cellspacing="0">
+
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Member No.</th>
+            <th>Owner</th>
+            <th>Ring No.</th>
+            <th>Pigeon</th>
+            <th>Paid</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          <% entries.forEach((entry, index) => { %>
+
+            <tr>
+
+              <td>
+                <%= index + 1 %>
+              </td>
+
+              <td>
+                <%= entry.member_no %>
+              </td>
+
+              <td>
+                <%= entry.owner %>
+              </td>
+
+              <td>
+                <%= entry.ring_no %>
+              </td>
+
+              <td>
+                <%= entry.pigeon_name || "Unnamed" %>
+              </td>
+
+              <td>
+                <%= entry.paid ? "YES" : "NO" %>
+              </td>
+
+              <td>
+
+                <form
+                  action="/races/<%= race.id %>/entries/<%= entry.id %>/delete"
+                  method="POST"
+                >
+
+                  <button type="submit">
+                    Remove
+                  </button>
+
+                </form>
+
+              </td>
+
+            </tr>
+
+          <% }) %>
+
+        </tbody>
+
+      </table>
+
+    <% } %>
+
+    <br>
+
+    <a href="/races">
+      ← Back to Races
+    </a>
+
+  </div>
+
+</body>
+</html>
