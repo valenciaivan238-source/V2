@@ -23,6 +23,7 @@ const pool = new Pool({
     ? { rejectUnauthorized: false }
     : false
 });
+
 async function createAdmin() {
   try {
     const hash = await bcrypt.hash("admin123", 10);
