@@ -1495,6 +1495,379 @@ app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+/* =================================
+   ADMIN / ORGANIZER DELETE FUNCTIONS
+================================= */
+
+function requireAdminOrOrganizer(req, res, next) {
+  if (
+    !req.session.user ||
+    (
+      req.session.user.role !== "admin" &&
+      req.session.user.role !== "organizer"
+    )
+  ) {
+    return res.status(403).send("Access denied");
+  }
+
+  next();
+}
+
+
+/* =================================
+   DELETE RACE
+   Deletes:
+   - Clockings
+   - Entries
+   - Race
+================================= */
+
+app.post(
+  "/admin/races/:id/delete",
+  requireLogin,
+  requireAdminOrOrganizer,
+  async (req, res) => {
+
+    const client = await pool.connect();
+
+    try {
+      const raceId = req.params.id;
+
+      await client.query("BEGIN");
+
+      // Delete clockings belonging to this race
+      await client.query(
+        `
+        DELETE FROM clockings
+        WHERE entry_id IN (
+          SELECT id
+          FROM entries
+          WHERE race_id = $1
+        )
+        `,
+        [raceId]
+      );
+
+      // Delete race entries
+      await client.query(
+        `
+        DELETE FROM entries
+        WHERE race_id = $1
+        `,
+        [raceId]
+      );
+
+      // Delete race
+      const result = await client.query(
+        `
+        DELETE FROM races
+        WHERE id = $1
+        RETURNING id
+        `,
+        [raceId]
+      );
+
+      if (result.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).send("Race not found");
+      }
+
+      await client.query("COMMIT");
+
+      res.redirect("/races");
+
+    } catch (err) {
+
+      await client.query("ROLLBACK");
+
+      console.error("DELETE RACE ERROR:", err);
+
+      res.status(500).send(err.message);
+
+    } finally {
+
+      client.release();
+
+    }
+  }
+);
+
+
+/* =================================
+   DELETE MEMBER ACCOUNT
+================================= */
+
+app.post(
+  "/admin/member-accounts/:id/delete",
+  requireLogin,
+  requireAdminOrOrganizer,
+  async (req, res) => {
+
+    try {
+
+      const accountId = req.params.id;
+
+      // Never allow the admin account to be deleted
+      const account = await pool.query(
+        `
+        SELECT id, username, role
+        FROM users
+        WHERE id = $1
+        `,
+        [accountId]
+      );
+
+      if (account.rows.length === 0) {
+        return res.status(404).send("Member account not found");
+      }
+
+      if (account.rows[0].role !== "member") {
+        return res.status(400).send(
+          "Only member accounts can be deleted."
+        );
+      }
+
+      await pool.query(
+        `
+        DELETE FROM users
+        WHERE id = $1
+        AND role = 'member'
+        `,
+        [accountId]
+      );
+
+      res.redirect("/admin/create-member");
+
+    } catch (err) {
+
+      console.error("DELETE MEMBER ACCOUNT ERROR:", err);
+
+      res.status(500).send(err.message);
+
+    }
+  }
+);
+
+
+/* =================================
+   DELETE MEMBER / LOFT
+   Deletes:
+   - Member account linked to member
+   - Clockings
+   - Entries
+   - Pigeons
+   - Member / Loft
+================================= */
+
+app.post(
+  "/admin/members/:id/delete",
+  requireLogin,
+  requireAdminOrOrganizer,
+  async (req, res) => {
+
+    const client = await pool.connect();
+
+    try {
+
+      const memberId = req.params.id;
+
+      await client.query("BEGIN");
+
+      // Check member exists
+      const memberResult = await client.query(
+        `
+        SELECT id
+        FROM members
+        WHERE id = $1
+        `,
+        [memberId]
+      );
+
+      if (memberResult.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).send("Member not found");
+      }
+
+      /*
+        Delete clockings for this member's race entries
+      */
+      await client.query(
+        `
+        DELETE FROM clockings
+        WHERE entry_id IN (
+          SELECT entries.id
+          FROM entries
+          JOIN pigeons
+            ON pigeons.id = entries.pigeon_id
+          WHERE pigeons.member_id = $1
+        )
+        `,
+        [memberId]
+      );
+
+      /*
+        Delete race entries for this member's pigeons
+      */
+      await client.query(
+        `
+        DELETE FROM entries
+        WHERE pigeon_id IN (
+          SELECT id
+          FROM pigeons
+          WHERE member_id = $1
+        )
+        `,
+        [memberId]
+      );
+
+      /*
+        Delete pigeons belonging to member
+      */
+      await client.query(
+        `
+        DELETE FROM pigeons
+        WHERE member_id = $1
+        `,
+        [memberId]
+      );
+
+      /*
+        Delete the login account linked to this member
+      */
+      await client.query(
+        `
+        DELETE FROM users
+        WHERE member_id = $1
+        AND role = 'member'
+        `,
+        [memberId]
+      );
+
+      /*
+        Delete member / loft
+      */
+      await client.query(
+        `
+        DELETE FROM members
+        WHERE id = $1
+        `,
+        [memberId]
+      );
+
+      await client.query("COMMIT");
+
+      res.redirect("/members");
+
+    } catch (err) {
+
+      await client.query("ROLLBACK");
+
+      console.error("DELETE MEMBER ERROR:", err);
+
+      res.status(500).send(err.message);
+
+    } finally {
+
+      client.release();
+
+    }
+  }
+);
+
+
+/* =================================
+   DELETE PIGEON
+   Deletes:
+   - Clockings
+   - Race entries
+   - Pigeon
+================================= */
+
+app.post(
+  "/admin/pigeons/:id/delete",
+  requireLogin,
+  requireAdminOrOrganizer,
+  async (req, res) => {
+
+    const client = await pool.connect();
+
+    try {
+
+      const pigeonId = req.params.id;
+
+      await client.query("BEGIN");
+
+      // Check pigeon exists
+      const pigeonResult = await client.query(
+        `
+        SELECT id
+        FROM pigeons
+        WHERE id = $1
+        `,
+        [pigeonId]
+      );
+
+      if (pigeonResult.rows.length === 0) {
+        await client.query("ROLLBACK");
+        return res.status(404).send("Pigeon not found");
+      }
+
+      /*
+        Delete clockings belonging to pigeon entries
+      */
+      await client.query(
+        `
+        DELETE FROM clockings
+        WHERE entry_id IN (
+          SELECT id
+          FROM entries
+          WHERE pigeon_id = $1
+        )
+        `,
+        [pigeonId]
+      );
+
+      /*
+        Delete race entries
+      */
+      await client.query(
+        `
+        DELETE FROM entries
+        WHERE pigeon_id = $1
+        `,
+        [pigeonId]
+      );
+
+      /*
+        Delete pigeon
+      */
+      await client.query(
+        `
+        DELETE FROM pigeons
+        WHERE id = $1
+        `,
+        [pigeonId]
+      );
+
+      await client.query("COMMIT");
+
+      res.redirect("/pigeons");
+
+    } catch (err) {
+
+      await client.query("ROLLBACK");
+
+      console.error("DELETE PIGEON ERROR:", err);
+
+      res.status(500).send(err.message);
+
+    } finally {
+
+      client.release();
+
+    }
+  }
+);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
