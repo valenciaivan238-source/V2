@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pigeons</title>
+</head>
+<body>
 
+<h1>Pigeons</h1>
+
+<table border="1">
+
+<tr>
+    <th>Ring No</th>
+    <th>Name</th>
+    <th>Owner</th>
+</tr>
+
+<% pigeons.forEach(p => { %>
+<tr>
+    <td><%= p.ring_no %></td>
+    <td><%= p.name %></td>
+    <td><%= p.owner %></td>
+</tr>
+<% }) %>
+
+</table>
+
+</body>
+</html>
