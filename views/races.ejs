@@ -1,3 +1,10 @@
+<% if (user && user.role === "organizer") { %>
+
+  <a href="/races/new">
+    <button type="button">+ Create New Race</button>
+  </a>
+
+<% } %>
 <!DOCTYPE html>
 <html>
 <head>
