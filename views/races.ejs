@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Races</title>
 </head>
@@ -9,41 +8,24 @@
 
 <h1>Races</h1>
 
-
 <% if (user && user.role === "organizer") { %>
 
     <a href="/races/new">
-        <button type="button">
-            + Create New Race
-        </button>
+        <button type="button">+ Create New Race</button>
     </a>
-
-<a href="/races/<%= r.id %>/clocking">
-    <button type="button">
-        Clocking
-    </button>
-</a>
 
 <% } %>
 
-
 <br><br>
-
 
 <table border="1">
 
 <tr>
-
     <th>Name</th>
-
     <th>Date</th>
-
     <th>Distance</th>
-
     <th>Action</th>
-
 </tr>
-
 
 <% races.forEach(r => { %>
 
@@ -66,11 +48,15 @@
         <% if (user && user.role === "organizer") { %>
 
             <a href="/races/<%= r.id %>/entries">
-
                 <button type="button">
                     Race Entries
                 </button>
+            </a>
 
+            <a href="/races/<%= r.id %>/clocking">
+                <button type="button">
+                    Clocking
+                </button>
             </a>
 
         <% } %>
@@ -81,9 +67,7 @@
 
 <% }) %>
 
-
 </table>
 
 </body>
-
 </html>
