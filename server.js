@@ -152,36 +152,7 @@ app.get("/", (req, res) => {
 
 /* LOGIN */
 app.post("/login", async (req, res) => {
- app.post("/admin/create-member", requireLogin, async (req, res) => {
-  if (req.session.user.role !== "organizer") {
-    return res.send("Access denied");
-  }
-
-  try {
-    const { username, password, member_id } = req.body;
-
-    if (!username || !password || !member_id) {
-      return res.send("Username, password, and member are required.");
-    }
-
-    const hash = await bcrypt.hash(password, 10);
-
-    await pool.query(
-      `
-      INSERT INTO users
-      (username, password_hash, role, member_id)
-      VALUES($1, $2, 'member', $3)
-      `,
-      [username, hash, member_id]
-    );
-
-    res.send("Member account created successfully");
-
-  } catch (err) {
-    console.error("CREATE MEMBER ERROR:", err);
-    res.send(err.message);
-  }
-});
+ 
   try {
     const { username, password } = req.body;
 
