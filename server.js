@@ -483,6 +483,7 @@ app.get("/races/:id/entries", requireLogin, async (req, res) => {
       SELECT
         entries.id,
         entries.paid,
+        entries.verification_code,
         pigeons.ring_no,
         pigeons.name AS pigeon_name,
         members.member_no,
