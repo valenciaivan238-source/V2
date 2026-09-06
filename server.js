@@ -367,14 +367,20 @@ app.post("/pigeons/new", requireLogin, async (req, res) => {
 
 });
 app.get("/races", requireLogin, async (req, res) => {
-  const result = await pool.query(
-    "SELECT * FROM races ORDER BY id DESC"
-  );
+  try {
+    const result = await pool.query(
+      "SELECT * FROM races ORDER BY id DESC"
+    );
 
-  res.render("races", {
-    user: req.session.user,
-    races: result.rows
-  });
+    res.render("races", {
+      user: req.session.user,
+      races: result.rows
+    });
+
+  } catch (err) {
+    console.error("RACES PAGE ERROR:", err);
+    res.status(500).send(err.message);
+  }
 });
 /* CREATE RACE PAGE */
 app.get("/races/new", requireLogin, (req, res) => {
