@@ -52,3 +52,11 @@
 <a href="/admin/create-member" class="btn btn-success">
   Add Member Account
 </a>
+
+<% if(user.role === "organizer"){ %>
+
+<a href="/members/new" class="btn btn-success">
+Add Member / Loft
+</a>
+
+<% } %>
