@@ -1161,22 +1161,51 @@ app.get("/admin/create-member", requireLogin, (req, res) => {
 });
 
 app.post("/admin/create-member", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "organizer") {
+    return res.status(403).send("Access denied");
+  }
+
   try {
-    const { username, password } = req.body;
+    const {
+      username,
+      password,
+      member_id
+    } = req.body;
+
+    if (!username || !password || !member_id) {
+      return res.status(400).send(
+        "Username, password, and member are required."
+      );
+    }
 
     const hash = await bcrypt.hash(password, 10);
 
     await pool.query(
       `
-      INSERT INTO users(username, password_hash, role)
-      VALUES($1, $2, 'member')
+      INSERT INTO users
+      (
+        username,
+        password_hash,
+        role,
+        member_id
+      )
+      VALUES($1, $2, 'member', $3)
       `,
-      [username, hash]
+      [username, hash, member_id]
     );
 
     res.send("Member account created successfully");
+
   } catch (err) {
-    res.send(err.message);
+    console.error("CREATE MEMBER ACCOUNT ERROR:", err);
+
+    if (err.code === "23505") {
+      return res.status(400).send(
+        "Username already exists."
+      );
+    }
+
+    res.status(500).send(err.message);
   }
 });
 /* MEMBER RACE LIST */
