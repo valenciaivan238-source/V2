@@ -356,8 +356,71 @@ app.get("/races", requireLogin, async (req, res) => {
   );
 
   res.render("races", {
+    user: req.session.user,
     races: result.rows
   });
+});
+/* CREATE RACE PAGE */
+app.get("/races/new", requireLogin, (req, res) => {
+  if (req.session.user.role !== "organizer") {
+    return res.send("Access denied");
+  }
+
+  res.render("race-form");
+});
+
+
+/* CREATE RACE */
+app.post("/races/new", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "organizer") {
+    return res.send("Access denied");
+  }
+
+  try {
+    const {
+      name,
+      category,
+      release_point,
+      distance_km,
+      race_date,
+      release_time,
+      entry_fee,
+      status
+    } = req.body;
+
+    await pool.query(
+      `
+      INSERT INTO races
+      (
+        name,
+        category,
+        release_point,
+        distance_km,
+        race_date,
+        release_time,
+        entry_fee,
+        status
+      )
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8)
+      `,
+      [
+        name,
+        category,
+        release_point,
+        distance_km || null,
+        race_date,
+        release_time || null,
+        entry_fee || 0,
+        status || "Open"
+      ]
+    );
+
+    res.redirect("/races");
+
+  } catch (err) {
+    console.error(err);
+    res.send(err.message);
+  }
 });
 
 app.get("/results", requireLogin, async (req, res) => {
