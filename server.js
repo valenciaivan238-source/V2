@@ -98,7 +98,7 @@ app.get("/", (req, res) => {
 /* LOGIN */
 app.post("/login", async (req, res) => {
   app.post("/admin/create-member", requireLogin, async (req, res) => {
-  if (req.session.user.role !== "admin") {
+  if (req.session.user.role !== "organizer") {
     return res.send("Access denied");
   }
 
