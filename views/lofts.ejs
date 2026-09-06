@@ -3,30 +3,67 @@
 <head>
     <title>Members</title>
 </head>
+
 <body>
 
 <h1>Members</h1>
+
+<a href="/members/new">
+    <button type="button">Add Member / Loft</button>
+</a>
+
+<br><br>
 
 <table border="1">
 <tr>
     <th>ID</th>
     <th>Name</th>
     <th>Member No</th>
+    <th>Action</th>
 </tr>
 
 <% members.forEach(member => { %>
+
 <tr>
-    <td><%= member.id %></td>
-    <td><%= member.name %></td>
-    <td><%= member.member_no %></td>
+
+    <td>
+        <%= member.id %>
+    </td>
+
+    <td>
+        <%= member.name %>
+    </td>
+
+    <td>
+        <%= member.member_no %>
+    </td>
+
+    <td>
+
+        <% if (user && user.role === "organizer") { %>
+
+            <form
+                method="POST"
+                action="/members/<%= member.id %>/delete"
+                onsubmit="return confirm('Delete this member, their loft, pigeons, and account?');"
+                style="display:inline;"
+            >
+
+                <button type="submit">
+                    Delete
+                </button>
+
+            </form>
+
+        <% } %>
+
+    </td>
+
 </tr>
+
 <% }) %>
 
 </table>
 
 </body>
 </html>
-
-<a href="/members/new" class="btn btn-success mb-3">
-Add Member / Loft
-</a>
