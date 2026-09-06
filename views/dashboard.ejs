@@ -1,116 +1,50 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>MPRPHC Dashboard</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-body{
-    background:#f4f6f8;
-}
-
-.sidebar{
-    min-height:100vh;
-    background:#1f2937;
-}
-
-.sidebar a{
-    color:white;
-    text-decoration:none;
-    display:block;
-    padding:12px;
-}
-
-.sidebar a:hover{
-    background:#374151;
-}
-
-.card{
-    border:none;
-    border-radius:15px;
-    box-shadow:0 4px 12px rgba(0,0,0,.08);
-}
-
-.stat{
-    font-size:32px;
-    font-weight:bold;
-}
-</style>
-
-</head>
-<body>
-
 <div class="container-fluid">
+  <div class="row">
 
-<div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-2 bg-dark text-white min-vh-100 p-3">
+      <h2>MPRPHC</h2>
+      <hr>
 
-<div class="col-md-2 sidebar p-3">
+      <a href="/dashboard" class="d-block text-white mb-3">Dashboard</a>
+      <a href="/members" class="d-block text-white mb-3">Members</a>
+      <a href="/pigeons" class="d-block text-white mb-3">Pigeons</a>
+      <a href="/races" class="d-block text-white mb-3">Races</a>
+      <a href="/results" class="d-block text-white mb-3">Results</a>
+      <a href="/logout" class="d-block text-danger">Logout</a>
+    </div>
 
-<h3 class="text-white mb-4">
-MPRPHC
-</h3>
+    <!-- Main Content -->
+    <div class="col-lg-10 p-4">
 
-<a href="/dashboard">Dashboard</a>
-<a href="/members">Members</a>
-<a href="/pigeons">Pigeons</a>
-<a href="/races">Races</a>
-<a href="/results">Results</a>
-<a href="/logout">Logout</a>
+      <h2 class="mb-4">Dashboard Overview</h2>
 
-</div>
+      <div class="row">
 
-<div class="col-md-10 p-4">
+        <div class="col-md-4 mb-3">
+          <div class="card shadow p-3">
+            <h6>Members</h6>
+            <h1><%= members %></h1>
+          </div>
+        </div>
 
-<h2 class="mb-4">
-Dashboard Overview
-</h2>
+        <div class="col-md-4 mb-3">
+          <div class="card shadow p-3">
+            <h6>Pigeons</h6>
+            <h1><%= pigeons %></h1>
+          </div>
+        </div>
 
-<div class="row g-4">
+        <div class="col-md-4 mb-3">
+          <div class="card shadow p-3">
+            <h6>Races</h6>
+            <h1><%= races %></h1>
+          </div>
+        </div>
 
-<div class="col-md-4">
-<div class="card p-4">
-<div class="text-muted">
-Members
-</div>
-<div class="stat">
-<%= members %>
-</div>
-</div>
-</div>
+      </div>
 
-<div class="col-md-4">
-<div class="card p-4">
-<div class="text-muted">
-Pigeons
-</div>
-<div class="stat">
-<%= pigeons %>
-</div>
-</div>
-</div>
+    </div>
 
-<div class="col-md-4">
-<div class="card p-4">
-<div class="text-muted">
-Races
+  </div>
 </div>
-<div class="stat">
-<%= races %>
-</div>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</body>
-</html>
