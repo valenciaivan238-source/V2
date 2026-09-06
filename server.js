@@ -69,9 +69,7 @@ app.use(
   })
 );
 
-app.get("/", (req, res) => {
-  res.render("login");
-});
+app.get(
 
 app.get("/dashboard", async (req, res) => {
   try {
