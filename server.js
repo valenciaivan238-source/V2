@@ -1202,6 +1202,76 @@ app.post("/admin/create-member", requireLogin, async (req, res) => {
     res.send(err.message);
   }
 });
+/* MEMBER RACE LIST */
+
+app.get("/member/races", requireLogin, async (req, res) => {
+
+  if (req.session.user.role !== "member") {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+
+    const userId = req.session.user.id;
+
+    // Find the member linked to this account
+    const userResult = await pool.query(
+      `
+      SELECT member_id
+      FROM users
+      WHERE id = $1
+      `,
+      [userId]
+    );
+
+    if (
+      userResult.rows.length === 0 ||
+      !userResult.rows[0].member_id
+    ) {
+      return res.status(400).send(
+        "Member account is not linked to a member."
+      );
+    }
+
+    const memberId = userResult.rows[0].member_id;
+
+    // Get races where this member has pigeons entered
+    const racesResult = await pool.query(
+      `
+      SELECT DISTINCT
+        races.id,
+        races.name,
+        races.category,
+        races.race_date,
+        races.release_time,
+        races.status
+      FROM races
+
+      JOIN entries
+        ON entries.race_id = races.id
+
+      JOIN pigeons
+        ON pigeons.id = entries.pigeon_id
+
+      WHERE pigeons.member_id = $1
+
+      ORDER BY races.race_date DESC, races.id DESC
+      `,
+      [memberId]
+    );
+
+    res.render("member-races", {
+      user: req.session.user,
+      races: racesResult.rows
+    });
+
+  } catch (err) {
+
+    console.error("MEMBER RACES ERROR:", err);
+
+    res.status(500).send(err.message);
+  }
+});
 
 /* =================================
    MEMBER SUBMIT ARRIVAL
