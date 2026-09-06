@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import express from "express";
 import session from "express-session";
 import pg from "pg";
@@ -18,10 +19,44 @@ const { Pool } = pg;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === "production"
-    ? { rejectUnauthorized: false }
-    : false
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false
 });
+
+/* AUTO CREATE ADMIN */
+async function createAdmin() {
+  try {
+    const hash = await bcrypt.hash("admin123", 10);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role VARCHAR(20) NOT NULL,
+        member_id INTEGER,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(
+      `
+      INSERT INTO users(username,password_hash,role)
+      VALUES('admin',$1,'admin')
+      ON CONFLICT(username) DO NOTHING
+    `,
+      [hash]
+    );
+
+    console.log("Admin account ready");
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+createAdmin();
 
 const PgStore = connectPgSimple(session);
 
@@ -31,23 +66,27 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, "public")));
-
 app.use(
   session({
     store: new PgStore({
       pool,
-      tableName: "user_sessions"
+      tableName: "user_sessions",
+      createTableIfMissing: true
     }),
     secret: process.env.SESSION_SECRET || "mprphc-secret",
     resave: false,
-    saveUninitialized: false,
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24
-    }
+    saveUninitialized: false
   })
 );
 
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.redirect("/");
+  }
+  next();
+}
+
+/* LOGIN PAGE */
 app.get("/", (req, res) => {
   if (req.session.user) {
     return res.redirect("/dashboard");
@@ -56,12 +95,13 @@ app.get("/", (req, res) => {
   res.render("login");
 });
 
+/* LOGIN */
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-
   try {
+    const { username, password } = req.body;
+
     const result = await pool.query(
-      "SELECT * FROM users WHERE username = $1",
+      "SELECT * FROM users WHERE username=$1",
       [username]
     );
 
@@ -91,11 +131,17 @@ app.post("/login", async (req, res) => {
     res.send(err.message);
   }
 });
-app.get("/dashboard", async (req, res) => {
+
+/* LOGOUT */
+app.get("/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.redirect("/");
+  });
+});
+
+/* DASHBOARD */
+app.get("/dashboard", requireLogin, async (req, res) => {
   try {
-    if (!req.session.user) {
-    return res.redirect("/");
-    }
     const members = await pool.query(
       "SELECT COUNT(*) FROM members"
     );
