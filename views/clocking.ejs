@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Race Clocking</title>
+
+    <link rel="stylesheet" href="/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Race Clocking</h1>
+
+    <h2>
+        <%= race.name %>
+    </h2>
+
+    <p>
+        <strong>Race Date:</strong>
+        <%= race.race_date || "N/A" %>
+    </p>
+
+    <p>
+        <strong>Release Point:</strong>
+        <%= race.release_point || "N/A" %>
+    </p>
+
+    <hr>
+
+    <h2>Entered Pigeons</h2>
+
+    <% if (entries.length === 0) { %>
+
+        <p>
+            No pigeons are registered for this race.
+        </p>
+
+    <% } else { %>
+
+        <table
+            border="1"
+            cellpadding="8"
+            cellspacing="0"
+        >
+
+            <thead>
+
+                <tr>
+
+                    <th>#</th>
+
+                    <th>Member No.</th>
+
+                    <th>Owner</th>
+
+                    <th>Ring No.</th>
+
+                    <th>Pigeon</th>
+
+                    <th>Arrival Time</th>
+
+                    <th>Status</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                <% entries.forEach((entry, index) => { %>
+
+                    <tr>
+
+                        <td>
+                            <%= index + 1 %>
+                        </td>
+
+                        <td>
+                            <%= entry.member_no %>
+                        </td>
+
+                        <td>
+                            <%= entry.owner %>
+                        </td>
+
+                        <td>
+                            <%= entry.ring_no %>
+                        </td>
+
+                        <td>
+                            <%= entry.pigeon_name || "Unnamed" %>
+                        </td>
+
+                        <td>
+
+                            <% if (entry.arrival_time) { %>
+
+                                <%= entry.arrival_time %>
+
+                            <% } else { %>
+
+                                <strong>
+                                    Not Clocked
+                                </strong>
+
+                            <% } %>
+
+                        </td>
+
+                        <td>
+
+                            <% if (entry.verified) { %>
+
+                                <strong>
+                                    VERIFIED
+                                </strong>
+
+                            <% } else if (entry.arrival_time) { %>
+
+                                Pending
+
+                            <% } else { %>
+
+                                Not Clocked
+
+                            <% } %>
+
+                        </td>
+
+                        <td>
+
+                            <form
+                                action="/races/<%= race.id %>/clocking"
+                                method="POST"
+                            >
+
+                                <input
+                                    type="hidden"
+                                    name="entry_id"
+                                    value="<%= entry.entry_id %>"
+                                >
+
+                                <input
+                                    type="time"
+                                    name="arrival_time"
+                                    value="<%= entry.arrival_time || '' %>"
+                                    required
+                                >
+
+                                <button type="submit">
+                                    Save
+                                </button>
+
+                            </form>
+
+
+                            <% if (entry.arrival_time && !entry.verified) { %>
+
+                                <form
+                                    action="/races/<%= race.id %>/clocking/<%= entry.entry_id %>/verify"
+                                    method="POST"
+                                >
+
+                                    <button type="submit">
+                                        Verify
+                                    </button>
+
+                                </form>
+
+                            <% } %>
+
+                        </td>
+
+                    </tr>
+
+                <% }) %>
+
+            </tbody>
+
+        </table>
+
+    <% } %>
+
+    <br>
+
+    <a href="/races">
+        ← Back to Races
+    </a>
+
+</div>
+
+</body>
+
+</html>
