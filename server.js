@@ -283,6 +283,7 @@ app.get("/pigeons", requireLogin, async (req, res) => {
   `);
 
   res.render("pigeons", {
+    user: req.session.user,
     pigeons: result.rows
   });
 });
