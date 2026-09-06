@@ -219,3 +219,11 @@ app.get("/results", requireLogin, async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+app.get("/admin/create-member", requireLogin, (req, res) => {
+  if (req.session.user.role !== "admin") {
+    return res.send("Access denied");
+  }
+
+  res.render("create-member");
+});
