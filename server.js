@@ -290,9 +290,6 @@ app.listen(PORT, () => {
 });
 
 app.get("/admin/create-member", requireLogin, (req, res) => {
-  if (req.session.user.role !== "admin") {
-    return res.send("Access denied");
-  }
-
-  res.render("create-member");
+  
+res.send(JSON.stringify(req.session.user));
 });
