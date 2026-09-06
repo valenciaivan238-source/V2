@@ -741,6 +741,195 @@ app.post(
     }
   }
 );
+/* ================================
+   CLOCKING
+================================ */
+
+/* CLOCKING PAGE */
+app.get("/races/:id/clocking", requireLogin, async (req, res) => {
+
+  if (req.session.user.role !== "organizer") {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+
+    const raceId = req.params.id;
+
+    // Get race
+    const raceResult = await pool.query(
+      "SELECT * FROM races WHERE id = $1",
+      [raceId]
+    );
+
+    if (raceResult.rows.length === 0) {
+      return res.status(404).send("Race not found");
+    }
+
+    // Get all pigeons entered in this race
+    const entriesResult = await pool.query(`
+      SELECT
+        entries.id AS entry_id,
+        entries.paid,
+        pigeons.ring_no,
+        pigeons.name AS pigeon_name,
+        members.member_no,
+        members.name AS owner,
+        clockings.arrival_time,
+        clockings.verified
+      FROM entries
+
+      JOIN pigeons
+        ON entries.pigeon_id = pigeons.id
+
+      JOIN members
+        ON pigeons.member_id = members.id
+
+      LEFT JOIN clockings
+        ON entries.id = clockings.entry_id
+
+      WHERE entries.race_id = $1
+
+      ORDER BY clockings.arrival_time ASC NULLS LAST
+    `, [raceId]);
+
+    res.render("clocking", {
+      user: req.session.user,
+      race: raceResult.rows[0],
+      entries: entriesResult.rows
+    });
+
+  } catch (err) {
+
+    console.error("CLOCKING ERROR:", err);
+
+    res.status(500).send(err.message);
+  }
+});
+
+
+/* SAVE CLOCKING */
+app.post("/races/:id/clocking", requireLogin, async (req, res) => {
+
+  if (req.session.user.role !== "organizer") {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+
+    const raceId = req.params.id;
+
+    const {
+      entry_id,
+      arrival_time
+    } = req.body;
+
+    if (!entry_id || !arrival_time) {
+      return res.status(400).send(
+        "Entry and arrival time are required."
+      );
+    }
+
+    // Make sure the entry belongs to this race
+    const entryResult = await pool.query(
+      `
+      SELECT id
+      FROM entries
+      WHERE id = $1
+      AND race_id = $2
+      `,
+      [entry_id, raceId]
+    );
+
+    if (entryResult.rows.length === 0) {
+      return res.status(400).send(
+        "Invalid race entry."
+      );
+    }
+
+    // Check if already clocked
+    const existing = await pool.query(
+      `
+      SELECT id
+      FROM clockings
+      WHERE entry_id = $1
+      `,
+      [entry_id]
+    );
+
+    if (existing.rows.length > 0) {
+
+      await pool.query(
+        `
+        UPDATE clockings
+        SET arrival_time = $1,
+            verified = FALSE
+        WHERE entry_id = $2
+        `,
+        [arrival_time, entry_id]
+      );
+
+    } else {
+
+      await pool.query(
+        `
+        INSERT INTO clockings
+        (
+          entry_id,
+          arrival_time,
+          verified
+        )
+        VALUES($1,$2,FALSE)
+        `,
+        [entry_id, arrival_time]
+      );
+
+    }
+
+    res.redirect(`/races/${raceId}/clocking`);
+
+  } catch (err) {
+
+    console.error("SAVE CLOCKING ERROR:", err);
+
+    res.status(500).send(err.message);
+  }
+});
+
+
+/* VERIFY CLOCKING */
+app.post(
+  "/races/:raceId/clocking/:entryId/verify",
+  requireLogin,
+  async (req, res) => {
+
+    if (req.session.user.role !== "organizer") {
+      return res.status(403).send("Access denied");
+    }
+
+    try {
+
+      const { raceId, entryId } = req.params;
+
+      await pool.query(
+        `
+        UPDATE clockings
+        SET verified = TRUE
+        WHERE entry_id = $1
+        `,
+        [entryId]
+      );
+
+      res.redirect(`/races/${raceId}/clocking`);
+
+    } catch (err) {
+
+      console.error("VERIFY CLOCKING ERROR:", err);
+
+      res.status(500).send(err.message);
+    }
+  }
+);
 
 app.get("/results", requireLogin, async (req, res) => {
   const result = await pool.query(`
