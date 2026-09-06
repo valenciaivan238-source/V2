@@ -77,6 +77,22 @@ async function updateMembersTable() {
 }
 
 updateMembersTable();
+
+async function updateEntriesTable() {
+  try {
+    await pool.query(`
+      ALTER TABLE entries
+      ADD COLUMN IF NOT EXISTS verification_code VARCHAR(5)
+    `);
+
+    console.log("Entries table updated");
+  } catch (err) {
+    console.error("Entries table update error:", err);
+  }
+}
+
+updateEntriesTable();
+
 const PgStore = connectPgSimple(session);
 
 app.set("view engine", "ejs");
