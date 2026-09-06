@@ -97,6 +97,30 @@ app.get("/", (req, res) => {
 
 /* LOGIN */
 app.post("/login", async (req, res) => {
+  app.post("/admin/create-member", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "admin") {
+    return res.send("Access denied");
+  }
+
+  try {
+    const { username, password } = req.body;
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      `
+      INSERT INTO users
+      (username,password_hash,role)
+      VALUES($1,$2,'member')
+      `,
+      [username, hash]
+    );
+
+    res.send("Member account created successfully");
+  } catch (err) {
+    res.send(err.message);
+  }
+});
   try {
     const { username, password } = req.body;
 
