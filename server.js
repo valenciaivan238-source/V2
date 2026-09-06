@@ -49,6 +49,10 @@ app.use(
 );
 
 app.get("/", (req, res) => {
+  if (req.session.user) {
+    return res.redirect("/dashboard");
+  }
+
   res.render("login");
 });
 
