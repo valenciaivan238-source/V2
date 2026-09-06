@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Create Race</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>Create New Race</h1>
+
+    <form action="/races/new" method="POST">
+
+      <label>Race Name</label>
+      <input
+        type="text"
+        name="name"
+        placeholder="Enter race name"
+        required
+      >
+
+      <label>Category</label>
+      <input
+        type="text"
+        name="category"
+        placeholder="Example: Young Bird, Old Bird, Championship"
+      >
+
+      <label>Release Point</label>
+      <input
+        type="text"
+        name="release_point"
+        placeholder="Enter release location"
+      >
+
+      <label>Distance (KM)</label>
+      <input
+        type="number"
+        name="distance_km"
+        step="0.001"
+        min="0"
+        placeholder="Example: 250"
+      >
+
+      <label>Race Date</label>
+      <input
+        type="date"
+        name="race_date"
+        required
+      >
+
+      <label>Release Time</label>
+      <input
+        type="time"
+        name="release_time"
+      >
+
+      <label>Entry Fee</label>
+      <input
+        type="number"
+        name="entry_fee"
+        step="0.01"
+        min="0"
+        value="0"
+      >
+
+      <label>Status</label>
+      <select name="status">
+        <option value="Open">Open</option>
+        <option value="Closed">Closed</option>
+        <option value="Completed">Completed</option>
+      </select>
+
+      <br><br>
+
+      <button type="submit">
+        Create Race
+      </button>
+
+    </form>
+
+    <br>
+
+    <a href="/races">← Back to Races</a>
+
+  </div>
+
+</body>
+</html>
