@@ -58,6 +58,25 @@ async function createAdmin() {
 
 createAdmin();
 
+async function updateMembersTable() {
+  try {
+    await pool.query(`
+      ALTER TABLE members
+      ADD COLUMN IF NOT EXISTS latitude NUMERIC(10,6)
+    `);
+
+    await pool.query(`
+      ALTER TABLE members
+      ADD COLUMN IF NOT EXISTS longitude NUMERIC(10,6)
+    `);
+
+    console.log("Members table updated");
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+updateMembersTable();
 const PgStore = connectPgSimple(session);
 
 app.set("view engine", "ejs");
