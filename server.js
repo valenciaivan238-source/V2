@@ -208,6 +208,10 @@ app.get("/dashboard", requireLogin, async (req, res) => {
 });
 
 app.get("/members/new", requireLogin, (req, res) => {
+  if (req.session.user.role !== "organizer") {
+    return res.send("Access denied");
+  }
+
   res.render("member-form");
 });
 app.post("/members/new", requireLogin, async (req, res) => {
