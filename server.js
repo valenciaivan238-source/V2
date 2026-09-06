@@ -418,7 +418,7 @@ app.post("/races/new", requireLogin, async (req, res) => {
     res.redirect("/races");
 
   } catch (err) {
-    console.error(err);
+    console.error("CREATE RACE ERROR:", err);
     res.send(err.message);
   }
 });
