@@ -282,10 +282,84 @@ app.get("/members", requireLogin, async (req, res) => {
   );
 
   res.render("lofts", {
+    user: req.session.user,
     members: result.rows
   });
 });
+/* DELETE MEMBER / LOFT / PIGEONS / ACCOUNT */
 
+app.post("/members/:id/delete", requireLogin, async (req, res) => {
+
+  if (req.session.user.role !== "organizer") {
+    return res.status(403).send("Access denied");
+  }
+
+  const memberId = req.params.id;
+
+  const client = await pool.connect();
+
+  try {
+
+    await client.query("BEGIN");
+
+    // Delete clockings for this member's pigeon entries
+    await client.query(`
+      DELETE FROM clockings
+      WHERE entry_id IN (
+        SELECT entries.id
+        FROM entries
+        JOIN pigeons
+          ON pigeons.id = entries.pigeon_id
+        WHERE pigeons.member_id = $1
+      )
+    `, [memberId]);
+
+    // Delete race entries for this member's pigeons
+    await client.query(`
+      DELETE FROM entries
+      WHERE pigeon_id IN (
+        SELECT id
+        FROM pigeons
+        WHERE member_id = $1
+      )
+    `, [memberId]);
+
+    // Delete pigeons
+    await client.query(`
+      DELETE FROM pigeons
+      WHERE member_id = $1
+    `, [memberId]);
+
+    // Delete member's login account
+    await client.query(`
+      DELETE FROM users
+      WHERE member_id = $1
+    `, [memberId]);
+
+    // Delete member / loft
+    await client.query(`
+      DELETE FROM members
+      WHERE id = $1
+    `, [memberId]);
+
+    await client.query("COMMIT");
+
+    res.redirect("/members");
+
+  } catch (err) {
+
+    await client.query("ROLLBACK");
+
+    console.error("DELETE MEMBER ERROR:", err);
+
+    res.status(500).send(err.message);
+
+  } finally {
+
+    client.release();
+
+  }
+});
 app.get("/pigeons", requireLogin, async (req, res) => {
   const result = await pool.query(`
     SELECT pigeons.*, members.name AS owner
