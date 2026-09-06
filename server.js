@@ -1203,6 +1203,210 @@ app.post("/admin/create-member", requireLogin, async (req, res) => {
   }
 });
 
+/* =================================
+   MEMBER SUBMIT ARRIVAL
+================================= */
+
+app.get("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "member") {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+    const raceId = req.params.raceId;
+    const userId = req.session.user.id;
+
+    // Find the member account
+    const userResult = await pool.query(
+      `
+      SELECT member_id
+      FROM users
+      WHERE id = $1
+      `,
+      [userId]
+    );
+
+    if (
+      userResult.rows.length === 0 ||
+      !userResult.rows[0].member_id
+    ) {
+      return res.status(400).send("Member account is not linked to a member.");
+    }
+
+    const memberId = userResult.rows[0].member_id;
+
+    // Get race
+    const raceResult = await pool.query(
+      `
+      SELECT *
+      FROM races
+      WHERE id = $1
+      `,
+      [raceId]
+    );
+
+    if (raceResult.rows.length === 0) {
+      return res.status(404).send("Race not found");
+    }
+
+    // Get this member's pigeons entered in this race
+    const entriesResult = await pool.query(
+      `
+      SELECT
+        entries.id AS entry_id,
+        pigeons.ring_no,
+        pigeons.name AS pigeon_name,
+        clockings.arrival_time,
+        clockings.verified
+      FROM entries
+
+      JOIN pigeons
+        ON pigeons.id = entries.pigeon_id
+
+      LEFT JOIN clockings
+        ON clockings.entry_id = entries.id
+
+      WHERE entries.race_id = $1
+      AND pigeons.member_id = $2
+
+      ORDER BY pigeons.ring_no
+      `,
+      [raceId, memberId]
+    );
+
+    res.render("member-arrival", {
+      race: raceResult.rows[0],
+      entries: entriesResult.rows
+    });
+
+  } catch (err) {
+    console.error("MEMBER ARRIVAL PAGE ERROR:", err);
+    res.status(500).send(err.message);
+  }
+});
+
+
+/* MEMBER SUBMITS ARRIVAL */
+
+app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
+  if (req.session.user.role !== "member") {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+    const raceId = req.params.raceId;
+    const userId = req.session.user.id;
+
+    const {
+      entry_id,
+      verification_code,
+      arrival_time
+    } = req.body;
+
+    if (!entry_id || !verification_code || !arrival_time) {
+      return res.status(400).send(
+        "Pigeon, verification code, and arrival time are required."
+      );
+    }
+
+    // Get member linked to this account
+    const userResult = await pool.query(
+      `
+      SELECT member_id
+      FROM users
+      WHERE id = $1
+      `,
+      [userId]
+    );
+
+    if (
+      userResult.rows.length === 0 ||
+      !userResult.rows[0].member_id
+    ) {
+      return res.status(400).send("Member account is not linked to a member.");
+    }
+
+    const memberId = userResult.rows[0].member_id;
+
+    // Verify that this entry belongs to this member and race
+    const entryResult = await pool.query(
+      `
+      SELECT
+        entries.id,
+        entries.verification_code,
+        pigeons.ring_no
+      FROM entries
+
+      JOIN pigeons
+        ON pigeons.id = entries.pigeon_id
+
+      WHERE entries.id = $1
+      AND entries.race_id = $2
+      AND pigeons.member_id = $3
+      `,
+      [entry_id, raceId, memberId]
+    );
+
+    if (entryResult.rows.length === 0) {
+      return res.status(403).send("Invalid race entry.");
+    }
+
+    const entry = entryResult.rows[0];
+
+    // Check the organizer-created 5 digit code
+    if (
+      String(entry.verification_code).trim() !==
+      String(verification_code).trim()
+    ) {
+      return res.status(400).send(
+        "Incorrect verification code."
+      );
+    }
+
+    // Check if already submitted
+    const existing = await pool.query(
+      `
+      SELECT id
+      FROM clockings
+      WHERE entry_id = $1
+      `,
+      [entry_id]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).send(
+        "Arrival time has already been submitted for this pigeon."
+      );
+    }
+
+    // Save arrival time
+    await pool.query(
+      `
+      INSERT INTO clockings
+      (
+        entry_id,
+        arrival_time,
+        verified
+      )
+      VALUES($1,$2,FALSE)
+      `,
+      [entry_id, arrival_time]
+    );
+
+    res.send(`
+      <h2>Arrival Submitted Successfully</h2>
+      <p>Pigeon Ring No: ${entry.ring_no}</p>
+      <p>Your arrival time was submitted successfully.</p>
+      <a href="/member/races/${raceId}/arrival">
+        Back to Race
+      </a>
+    `);
+
+  } catch (err) {
+    console.error("MEMBER ARRIVAL ERROR:", err);
+    res.status(500).send(err.message);
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
