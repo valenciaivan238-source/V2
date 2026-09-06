@@ -188,6 +188,51 @@ app.get("/dashboard", requireLogin, async (req, res) => {
   }
 });
 
+app.get("/members/new", requireLogin, (req, res) => {
+  res.render("member-form");
+});
+app.post("/members/new", requireLogin, async (req, res) => {
+  try {
+    const {
+      member_no,
+      name,
+      contact,
+      loft_name,
+      address,
+      latitude,
+      longitude
+    } = req.body;
+
+    await pool.query(
+      `
+      INSERT INTO members
+      (
+        member_no,
+        name,
+        contact,
+        loft_name,
+        address,
+        latitude,
+        longitude
+      )
+      VALUES($1,$2,$3,$4,$5,$6,$7)
+      `,
+      [
+        member_no,
+        name,
+        contact,
+        loft_name,
+        address,
+        latitude,
+        longitude
+      ]
+    );
+
+    res.redirect("/members");
+  } catch (err) {
+    res.send(err.message);
+  }
+});
 app.get("/members", requireLogin, async (req, res) => {
   const result = await pool.query(
     "SELECT * FROM members ORDER BY id DESC"
