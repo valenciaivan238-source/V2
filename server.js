@@ -215,6 +215,17 @@ app.get("/members/new", requireLogin, (req, res) => {
   res.render("member-form");
 });
 app.post("/members/new", requireLogin, async (req, res) => {
+
+  if (req.session.user.role !== "organizer") {
+    return res.send("Access denied");
+  }
+
+  try {
+    // save member code
+  } catch(err) {
+    res.send(err.message);
+  }
+});
   try {
     const {
       member_no,
