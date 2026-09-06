@@ -275,7 +275,7 @@ app.get("/members", requireLogin, async (req, res) => {
 
   res.render("lofts", {
     members: result.rows
-  
+  });
 });
 
 app.get("/pigeons", requireLogin, async (req, res) => {
