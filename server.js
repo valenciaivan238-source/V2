@@ -422,6 +422,169 @@ app.post("/races/new", requireLogin, async (req, res) => {
     res.send(err.message);
   }
 });
+/* RACE ENTRIES PAGE */
+app.get("/races/:id/entries", requireLogin, async (req, res) => {
+  if (
+    req.session.user.role !== "organizer" &&
+    req.session.user.role !== "admin"
+  ) {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+    const raceId = req.params.id;
+
+    // Get race
+    const raceResult = await pool.query(
+      "SELECT * FROM races WHERE id = $1",
+      [raceId]
+    );
+
+    if (raceResult.rows.length === 0) {
+      return res.status(404).send("Race not found");
+    }
+
+    // Get all active pigeons with their owners
+    const pigeonsResult = await pool.query(`
+      SELECT
+        pigeons.id,
+        pigeons.ring_no,
+        pigeons.name,
+        pigeons.sex,
+        pigeons.color,
+        members.id AS member_id,
+        members.member_no,
+        members.name AS owner
+      FROM pigeons
+      JOIN members
+        ON members.id = pigeons.member_id
+      WHERE pigeons.status = 'Active'
+      ORDER BY members.name, pigeons.ring_no
+    `);
+
+    // Get pigeons already entered in this race
+    const entriesResult = await pool.query(`
+      SELECT
+        entries.id,
+        entries.paid,
+        pigeons.ring_no,
+        pigeons.name AS pigeon_name,
+        members.member_no,
+        members.name AS owner
+      FROM entries
+      JOIN pigeons
+        ON pigeons.id = entries.pigeon_id
+      JOIN members
+        ON members.id = pigeons.member_id
+      WHERE entries.race_id = $1
+      ORDER BY members.name, pigeons.ring_no
+    `, [raceId]);
+
+    res.render("race-entries", {
+      user: req.session.user,
+      race: raceResult.rows[0],
+      pigeons: pigeonsResult.rows,
+      entries: entriesResult.rows
+    });
+
+  } catch (err) {
+    console.error("RACE ENTRIES ERROR:", err);
+    res.status(500).send(err.message);
+  }
+});
+
+
+/* ADD PIGEON TO RACE */
+app.post("/races/:id/entries", requireLogin, async (req, res) => {
+  if (
+    req.session.user.role !== "organizer" &&
+    req.session.user.role !== "admin"
+  ) {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+    const raceId = req.params.id;
+    const { pigeon_id } = req.body;
+
+    if (!pigeon_id) {
+      return res.status(400).send("Please select a pigeon.");
+    }
+
+    // Check race exists
+    const raceResult = await pool.query(
+      "SELECT id FROM races WHERE id = $1",
+      [raceId]
+    );
+
+    if (raceResult.rows.length === 0) {
+      return res.status(404).send("Race not found");
+    }
+
+    // Check pigeon exists
+    const pigeonResult = await pool.query(
+      "SELECT id FROM pigeons WHERE id = $1",
+      [pigeon_id]
+    );
+
+    if (pigeonResult.rows.length === 0) {
+      return res.status(404).send("Pigeon not found");
+    }
+
+    // Add entry
+    await pool.query(
+      `
+      INSERT INTO entries (race_id, pigeon_id)
+      VALUES ($1, $2)
+      `,
+      [raceId, pigeon_id]
+    );
+
+    res.redirect(`/races/${raceId}/entries`);
+
+  } catch (err) {
+    console.error("ADD ENTRY ERROR:", err);
+
+    // Same pigeon cannot be entered twice in the same race
+    if (err.code === "23505") {
+      return res.status(400).send(
+        "This pigeon is already entered in this race."
+      );
+    }
+
+    res.status(500).send(err.message);
+  }
+});
+
+
+/* REMOVE PIGEON FROM RACE */
+app.post("/races/:raceId/entries/:entryId/delete", requireLogin, async (req, res) => {
+  if (
+    req.session.user.role !== "organizer" &&
+    req.session.user.role !== "admin"
+  ) {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+    const { raceId, entryId } = req.params;
+
+    await pool.query(
+      `
+      DELETE FROM entries
+      WHERE id = $1
+      AND race_id = $2
+      `,
+      [entryId, raceId]
+    );
+
+    res.redirect(`/races/${raceId}/entries`);
+
+  } catch (err) {
+    console.error("DELETE ENTRY ERROR:", err);
+    res.status(500).send(err.message);
+  }
+});
 
 app.get("/results", requireLogin, async (req, res) => {
   const result = await pool.query(`
