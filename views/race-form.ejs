@@ -35,7 +35,36 @@
         placeholder="Enter release location"
       >
 
-      <label>Distance (KM)</label>
+      <label for="release_latitude">
+    Release Area Latitude
+</label>
+
+<input
+    type="number"
+    id="release_latitude"
+    name="release_latitude"
+    step="0.000001"
+    placeholder="Example: 13.500000"
+    required
+>
+
+<br><br>
+
+<label for="release_longitude">
+    Release Area Longitude
+</label>
+
+<input
+    type="number"
+    id="release_longitude"
+    name="release_longitude"
+    step="0.000001"
+    placeholder="Example: 121.000000"
+    required
+>
+
+<br><br>
+<label>Distance (KM)</label>
       <input
         type="number"
         name="distance_km"
