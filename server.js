@@ -296,3 +296,23 @@ app.get("/admin/create-member", requireLogin, (req, res) => {
 
   res.render("create-member");
 });
+
+app.post("/admin/create-member", requireLogin, async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await pool.query(
+      `
+      INSERT INTO users(username, password_hash, role)
+      VALUES($1, $2, 'member')
+      `,
+      [username, hash]
+    );
+
+    res.send("Member account created successfully");
+  } catch (err) {
+    res.send(err.message);
+  }
+});
