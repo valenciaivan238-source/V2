@@ -3,24 +3,69 @@
 <head>
     <title>Results</title>
 </head>
+
 <body>
 
 <h1>Results</h1>
 
-<table border="1">
+<table border="1" cellpadding="8" cellspacing="0">
 
 <tr>
+    <th>Rank</th>
     <th>Race</th>
     <th>Ring No</th>
     <th>Owner</th>
+    <th>Distance</th>
+    <th>Flight Time</th>
+    <th>Speed</th>
 </tr>
 
 <% results.forEach(r => { %>
+
 <tr>
-    <td><%= r.name %></td>
-    <td><%= r.ring_no %></td>
-    <td><%= r.owner %></td>
+
+    <td>
+        <%= r.rank %>
+    </td>
+
+    <td>
+        <%= r.race_name %>
+    </td>
+
+    <td>
+        <%= r.ring_no %>
+    </td>
+
+    <td>
+        <%= r.owner %>
+    </td>
+
+    <td>
+        <% if (r.distance_km !== null) { %>
+            <%= r.distance_km %> km
+        <% } else { %>
+            N/A
+        <% } %>
+    </td>
+
+    <td>
+        <% if (r.flight_minutes !== null) { %>
+            <%= r.flight_minutes %> min
+        <% } else { %>
+            N/A
+        <% } %>
+    </td>
+
+    <td>
+        <% if (r.speed_mpm !== null) { %>
+            <strong><%= r.speed_mpm %> m/min</strong>
+        <% } else { %>
+            N/A
+        <% } %>
+    </td>
+
 </tr>
+
 <% }) %>
 
 </table>
