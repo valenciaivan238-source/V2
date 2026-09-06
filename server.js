@@ -981,21 +981,199 @@ app.post(
 );
 
 app.get("/results", requireLogin, async (req, res) => {
-  const result = await pool.query(`
-    SELECT
-      races.name,
-      pigeons.ring_no,
-      members.name AS owner
-    FROM entries
-    JOIN races ON races.id = entries.race_id
-    JOIN pigeons ON pigeons.id = entries.pigeon_id
-    JOIN members ON members.id = pigeons.member_id
-    ORDER BY races.id DESC
-  `);
+app.get("/results", requireLogin, async (req, res) => {
+  try {
 
-  res.render("results", {
-    results: result.rows
-  });
+    const result = await pool.query(`
+      SELECT
+        races.id AS race_id,
+        races.name AS race_name,
+        races.release_latitude,
+        races.release_longitude,
+        races.release_time,
+
+        entries.id AS entry_id,
+
+        pigeons.ring_no,
+        pigeons.name AS pigeon_name,
+
+        members.name AS owner,
+        members.latitude AS loft_latitude,
+        members.longitude AS loft_longitude,
+
+        clockings.arrival_time,
+        clockings.verified
+
+      FROM entries
+
+      JOIN races
+        ON races.id = entries.race_id
+
+      JOIN pigeons
+        ON pigeons.id = entries.pigeon_id
+
+      JOIN members
+        ON members.id = pigeons.member_id
+
+      LEFT JOIN clockings
+        ON clockings.entry_id = entries.id
+
+      WHERE clockings.verified = TRUE
+
+      ORDER BY races.id DESC
+    `);
+
+    const results = result.rows.map(row => {
+
+      let distance_km = null;
+      let flight_minutes = null;
+      let speed_mpm = null;
+
+      // Make sure all coordinates and times exist
+      if (
+        row.release_latitude !== null &&
+        row.release_longitude !== null &&
+        row.loft_latitude !== null &&
+        row.loft_longitude !== null &&
+        row.release_time &&
+        row.arrival_time
+      ) {
+
+        const R = 6371; // Earth radius in kilometers
+
+        const lat1 =
+          Number(row.release_latitude) * Math.PI / 180;
+
+        const lat2 =
+          Number(row.loft_latitude) * Math.PI / 180;
+
+        const dLat =
+          (Number(row.loft_latitude) -
+            Number(row.release_latitude)) *
+          Math.PI / 180;
+
+        const dLon =
+          (Number(row.loft_longitude) -
+            Number(row.release_longitude)) *
+          Math.PI / 180;
+
+        const a =
+          Math.sin(dLat / 2) *
+          Math.sin(dLat / 2) +
+
+          Math.cos(lat1) *
+          Math.cos(lat2) *
+
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+
+        const c =
+          2 * Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+          );
+
+        distance_km = R * c;
+
+
+        // Convert PostgreSQL TIME values to seconds
+        const releaseParts =
+          String(row.release_time)
+            .split(":")
+            .map(Number);
+
+        const arrivalParts =
+          String(row.arrival_time)
+            .split(":")
+            .map(Number);
+
+        const releaseSeconds =
+          releaseParts[0] * 3600 +
+          releaseParts[1] * 60 +
+          releaseParts[2];
+
+        const arrivalSeconds =
+          arrivalParts[0] * 3600 +
+          arrivalParts[1] * 60 +
+          arrivalParts[2];
+
+
+        // Calculate flight time
+        let flightSeconds =
+          arrivalSeconds - releaseSeconds;
+
+        // Handle arrival after midnight
+        if (flightSeconds < 0) {
+          flightSeconds += 24 * 60 * 60;
+        }
+
+        flight_minutes =
+          flightSeconds / 60;
+
+
+        // Calculate meters per minute
+        if (flight_minutes > 0) {
+
+          const distanceMeters =
+            distance_km * 1000;
+
+          speed_mpm =
+            distanceMeters / flight_minutes;
+
+        }
+      }
+
+      return {
+        ...row,
+
+        distance_km:
+          distance_km !== null
+            ? distance_km.toFixed(3)
+            : null,
+
+        flight_minutes:
+          flight_minutes !== null
+            ? flight_minutes.toFixed(2)
+            : null,
+
+        speed_mpm:
+          speed_mpm !== null
+            ? speed_mpm.toFixed(2)
+            : null
+      };
+
+    });
+
+
+    // Rank by fastest m/min
+    results.sort((a, b) => {
+
+      if (a.speed_mpm === null) return 1;
+      if (b.speed_mpm === null) return -1;
+
+      return Number(b.speed_mpm) -
+             Number(a.speed_mpm);
+
+    });
+
+
+    // Add ranking
+    results.forEach((result, index) => {
+      result.rank = index + 1;
+    });
+
+
+    res.render("results", {
+      results
+    });
+
+  } catch (err) {
+
+    console.error("RESULTS ERROR:", err);
+
+    res.status(500).send(err.message);
+
+  }
 });
 
 app.get("/admin/create-member", requireLogin, (req, res) => {
