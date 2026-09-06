@@ -287,6 +287,68 @@ app.get("/pigeons", requireLogin, async (req, res) => {
   });
 });
 
+app.get("/pigeons/new", requireLogin, async (req, res) => {
+
+  if (req.session.user.role !== "organizer") {
+    return res.send("Access denied");
+  }
+
+  const members = await pool.query(
+    "SELECT * FROM members ORDER BY name"
+  );
+
+  res.render("pigeon-form", {
+    members: members.rows
+  });
+
+});
+app.post("/pigeons/new", requireLogin, async (req, res) => {
+
+  if (req.session.user.role !== "organizer") {
+    return res.send("Access denied");
+  }
+
+  try {
+
+    const {
+      ring_no,
+      name,
+      sex,
+      color,
+      birth_year,
+      member_id
+    } = req.body;
+
+    await pool.query(
+      `
+      INSERT INTO pigeons
+      (
+        ring_no,
+        name,
+        sex,
+        color,
+        birth_year,
+        member_id
+      )
+      VALUES($1,$2,$3,$4,$5,$6)
+      `,
+      [
+        ring_no,
+        name,
+        sex,
+        color,
+        birth_year,
+        member_id
+      ]
+    );
+
+    res.redirect("/pigeons");
+
+  } catch (err) {
+    res.send(err.message);
+  }
+
+});
 app.get("/races", requireLogin, async (req, res) => {
   const result = await pool.query(
     "SELECT * FROM races ORDER BY id DESC"
