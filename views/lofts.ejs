@@ -1,1 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Members</title>
+</head>
+<body>
 
+<h1>Members</h1>
+
+<table border="1">
+<tr>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Member No</th>
+</tr>
+
+<% members.forEach(member => { %>
+<tr>
+    <td><%= member.id %></td>
+    <td><%= member.name %></td>
+    <td><%= member.member_no %></td>
+</tr>
+<% }) %>
+
+</table>
+
+</body>
+</html>
