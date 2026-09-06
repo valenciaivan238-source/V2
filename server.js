@@ -222,12 +222,6 @@ app.post("/members/new", requireLogin, async (req, res) => {
   }
 
   try {
-    // save member code
-  } catch(err) {
-    res.send(err.message);
-  }
-});
-  try {
     const {
       member_no,
       name,
@@ -264,6 +258,7 @@ app.post("/members/new", requireLogin, async (req, res) => {
     );
 
     res.redirect("/members");
+
   } catch (err) {
     res.send(err.message);
   }
@@ -320,10 +315,6 @@ app.get("/results", requireLogin, async (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 app.get("/admin/create-member", requireLogin, (req, res) => {
   if (req.session.user.role !== "organizer") {
     return res.send("Access denied");
@@ -350,4 +341,8 @@ app.post("/admin/create-member", requireLogin, async (req, res) => {
   } catch (err) {
     res.send(err.message);
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
