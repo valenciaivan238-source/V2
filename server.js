@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import express from "express";
 import session from "express-session";
 import pg from "pg";
