@@ -40,7 +40,16 @@ async function createAdmin() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+await pool.query(`
+  ALTER TABLE users
+  DROP CONSTRAINT IF EXISTS users_role_check
+`);
 
+await pool.query(`
+  ALTER TABLE users
+  ADD CONSTRAINT users_role_check
+  CHECK (role IN ('admin', 'organizer', 'member'))
+`);
     await pool.query(
       `
       INSERT INTO users(username,password_hash,role)
