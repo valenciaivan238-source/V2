@@ -56,6 +56,41 @@ app.get("/", (req, res) => {
   res.render("login");
 });
 
+app.post("/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.send("Invalid username or password");
+    }
+
+    const user = result.rows[0];
+
+    const valid = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!valid) {
+      return res.send("Invalid username or password");
+    }
+
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      role: user.role
+    };
+
+    res.redirect("/dashboard");
+  } catch (err) {
+    res.send(err.message);
+  }
+});
 app.get("/dashboard", async (req, res) => {
   try {
     const members = await pool.query(
