@@ -53,6 +53,43 @@
             margin: 8px 0;
         }
 
+        .pigeon-card {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+        }
+
+        .pigeon-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .pigeon-info {
+            margin: 7px 0;
+            color: #374151;
+        }
+
+        .speed {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #ecfdf5;
+            color: #065f46;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .waiting {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 10px;
+            background: #fef3c7;
+            color: #92400e;
+        }
+
         .btn {
             display: block;
             width: 100%;
@@ -118,6 +155,82 @@
                     📍 Distance:
                     <%= race.distance_km || "N/A" %> km
                 </div>
+
+                <% if (race.pigeons && race.pigeons.length > 0) { %>
+
+                    <% race.pigeons.forEach(pigeon => { %>
+
+                        <div class="pigeon-card">
+
+                            <div class="pigeon-name">
+                                🕊️ Pigeon
+                            </div>
+
+                            <div class="pigeon-info">
+                                Ring No:
+                                <strong>
+                                    <%= pigeon.ring_no %>
+                                </strong>
+                            </div>
+
+                            <div class="pigeon-info">
+                                Name:
+                                <strong>
+                                    <%= pigeon.pigeon_name || "N/A" %>
+                                </strong>
+                            </div>
+
+                            <% if (pigeon.arrival_time) { %>
+
+                                <div class="pigeon-info">
+                                    ⏰ Arrival Time:
+                                    <strong>
+                                        <%= pigeon.arrival_time %>
+                                    </strong>
+                                </div>
+
+                                <div class="pigeon-info">
+                                    ⏱️ Flight Time:
+                                    <strong>
+                                        <%= pigeon.flight_minutes %> minutes
+                                    </strong>
+                                </div>
+
+                                <% if (pigeon.speed_mpm) { %>
+
+                                    <div class="speed">
+                                        🚀 Speed:
+                                        <%= pigeon.speed_mpm %>
+                                        m/min
+                                    </div>
+
+                                <% } else { %>
+
+                                    <div class="waiting">
+                                        Speed cannot be calculated yet.
+                                    </div>
+
+                                <% } %>
+
+                            <% } else { %>
+
+                                <div class="waiting">
+                                    ⏳ Waiting for pigeon arrival.
+                                </div>
+
+                            <% } %>
+
+                        </div>
+
+                    <% }) %>
+
+                <% } else { %>
+
+                    <div class="empty">
+                        No pigeons entered in this race.
+                    </div>
+
+                <% } %>
 
                 <a
                     href="/member/races/<%= race.id %>/arrival"
