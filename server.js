@@ -626,6 +626,9 @@ app.post("/races/:id/entries", requireLogin, async (req, res) => {
       return res.status(400).send("Please select a pigeon.");
     }
 
+    if (!/^\d{5}$/.test(verificationCode)) {
+  return res.status(400).send("Verification code must be exactly 5 digits.");
+    }
     // Check race exists
     const raceResult = await pool.query(
       "SELECT id FROM races WHERE id = $1",
