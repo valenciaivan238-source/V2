@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Race Entries</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        .header {
+            background: #111827;
+            color: white;
+            padding: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .race-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+
+        .race-card h2 {
+            margin-top: 0;
+            font-size: 22px;
+        }
+
+        .info {
+            color: #6b7280;
+            margin: 8px 0;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .empty {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>MPRPHC</h1>
+</div>
+
+<div class="container">
+
+    <h1>My Race Entries</h1>
+
+    <% if (races && races.length > 0) { %>
+
+        <% races.forEach(race => { %>
+
+            <div class="race-card">
+
+                <h2>
+                    <%= race.name %>
+                </h2>
+
+                <div class="info">
+                    📅 Race Date:
+                    <%= race.race_date || "N/A" %>
+                </div>
+
+                <div class="info">
+                    📍 Distance:
+                    <%= race.distance_km || "N/A" %> km
+                </div>
+
+                <a
+                    href="/member/races/<%= race.id %>/arrival"
+                    class="btn"
+                >
+                    Submit Pigeon Arrival
+                </a>
+
+            </div>
+
+        <% }) %>
+
+    <% } else { %>
+
+        <div class="empty">
+            <h2>No Race Available</h2>
+            <p>There are currently no races available for you.</p>
+        </div>
+
+    <% } %>
+
+    <a href="/dashboard" class="back">
+        ← Back to Dashboard
+    </a>
+
+</div>
+
+</body>
+</html>
