@@ -125,22 +125,44 @@
 
                 <br>
 
-                <label>
-                    Verification Code:
-                </label>
+                <form
+    method="POST"
+    action="/races/<%= race.id %>/entries"
+>
 
-                <input
-                    type="text"
-                    name="verification_code"
-                    maxlength="5"
-                    minlength="5"
-                    pattern="[0-9]{5}"
-                    inputmode="numeric"
-                    placeholder="Enter 5-digit code"
-                    required
-                >
+    <label>
+        Select Pigeon:
+    </label>
 
-                <br>
+    <select name="pigeon_id" required>
+
+        <option value="">
+            -- Select Pigeon --
+        </option>
+
+        <% pigeons.forEach(pigeon => { %>
+
+            <option value="<%= pigeon.id %>">
+
+                <%= pigeon.ring_no %>
+                -
+                <%= pigeon.name %>
+                -
+                <%= pigeon.owner %>
+
+            </option>
+
+        <% }) %>
+
+    </select>
+
+    <br>
+
+    <button type="submit">
+        Add Pigeon to Race
+    </button>
+
+</form>
 
                 <button type="submit">
                     Add Pigeon to Race
