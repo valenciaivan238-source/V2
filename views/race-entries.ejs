@@ -194,11 +194,22 @@
                         <%= entry.owner %>
                     </td>
 
+<td>
+    <% if (user && (user.role === "admin" || user.role === "organizer")) { %>
+        <strong>
+            <%= entry.verification_code || "N/A" %>
+        </strong>
+    <% } else { %>
+        <span>Hidden</span>
+    <% } %>
+</td>                   
+
                     <td>
-                        <strong>
-                            <%= entry.verification_code || "N/A" %>
-                        </strong>
-                    </td>
+
+                        <% if (user && (user.role === "organizer" || user.role === "admin")) { %>
+
+                            <form
+    
 
                     <td>
 
