@@ -1569,7 +1569,7 @@ app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
     }
 
     // Automatically record the server time
-const arrivalTime = new Date();
+const arrivalTime = new Date().toTimeString().slice(0, 8);
 
 await pool.query(
   `
