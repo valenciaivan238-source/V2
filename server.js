@@ -1493,7 +1493,7 @@ app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
 
     const arrivalTime = new Date().toTimeString().slice(0, 8);
     
-    if (!entry_id || !verification_code || !arrival_time) {
+    if (!entry_id || !verification_code) {
       return res.status(400).send(
         "Pigeon, verification code are required."
       );
