@@ -951,7 +951,7 @@ app.post("/races/:id/clocking", requireLogin, async (req, res) => {
       verification_code
     } = req.body;
 
-    if (!entry_id || !arrival_time) {
+    if (!entry_id || !verification_code) {
       return res.status(400).send(
         "Entry and arrival time are required."
       );
