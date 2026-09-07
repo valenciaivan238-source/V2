@@ -1491,14 +1491,14 @@ app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
       verification_code
     } = req.body;
 
+    const arrivalTime = new Date().toTimeString().slice(0, 8);
+    
     if (!entry_id || !verification_code || !arrival_time) {
       return res.status(400).send(
         "Pigeon, verification code are required."
       );
     }
 
-    const arrivalTime = new Date().toTimeString().slice(0, 8);
-    
     // Get member linked to this account
     const userResult = await pool.query(
       `
