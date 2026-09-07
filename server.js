@@ -1174,16 +1174,31 @@ app.get("/member/races", requireLogin, async (req, res) => {
 
     const memberId = userResult.rows[0].member_id;
 
-    // Get races where this member has pigeons entered
-    const racesResult = await pool.query(
+    // Get this member's races and pigeons
+    const result = await pool.query(
       `
-      SELECT DISTINCT
-        races.id,
-        races.name,
+      SELECT
+        races.id AS race_id,
+        races.name AS race_name,
         races.category,
         races.race_date,
         races.release_time,
-        races.status
+        races.release_latitude,
+        races.release_longitude,
+        races.distance_km,
+        races.status,
+
+        entries.id AS entry_id,
+
+        pigeons.ring_no,
+        pigeons.name AS pigeon_name,
+
+        members.latitude AS loft_latitude,
+        members.longitude AS loft_longitude,
+
+        clockings.arrival_time,
+        clockings.verified
+
       FROM races
 
       JOIN entries
@@ -1192,24 +1207,194 @@ app.get("/member/races", requireLogin, async (req, res) => {
       JOIN pigeons
         ON pigeons.id = entries.pigeon_id
 
+      JOIN members
+        ON members.id = pigeons.member_id
+
+      LEFT JOIN clockings
+        ON clockings.entry_id = entries.id
+
       WHERE pigeons.member_id = $1
 
-      ORDER BY races.race_date DESC, races.id DESC
+      ORDER BY races.race_date DESC, races.id DESC, pigeons.ring_no
       `,
       [memberId]
     );
 
+
+    // Group pigeons under each race
+    const raceMap = new Map();
+
+    for (const row of result.rows) {
+
+      if (!raceMap.has(row.race_id)) {
+
+        raceMap.set(row.race_id, {
+          id: row.race_id,
+          name: row.race_name,
+          category: row.category,
+          race_date: row.race_date,
+          release_time: row.release_time,
+          distance_km: row.distance_km,
+          status: row.status,
+          pigeons: []
+        });
+
+      }
+
+      let distanceKm = null;
+      let flightMinutes = null;
+      let speedMpm = null;
+
+
+      // Calculate speed only when arrival has been submitted
+      if (
+        row.release_latitude !== null &&
+        row.release_longitude !== null &&
+        row.loft_latitude !== null &&
+        row.loft_longitude !== null &&
+        row.release_time &&
+        row.arrival_time
+      ) {
+
+        const R = 6371;
+
+        const lat1 =
+          Number(row.release_latitude) * Math.PI / 180;
+
+        const lat2 =
+          Number(row.loft_latitude) * Math.PI / 180;
+
+        const dLat =
+          (
+            Number(row.loft_latitude) -
+            Number(row.release_latitude)
+          ) * Math.PI / 180;
+
+        const dLon =
+          (
+            Number(row.loft_longitude) -
+            Number(row.release_longitude)
+          ) * Math.PI / 180;
+
+        const a =
+          Math.sin(dLat / 2) *
+          Math.sin(dLat / 2) +
+
+          Math.cos(lat1) *
+          Math.cos(lat2) *
+
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2);
+
+        const c =
+          2 * Math.atan2(
+            Math.sqrt(a),
+            Math.sqrt(1 - a)
+          );
+
+        distanceKm = R * c;
+
+
+        // Convert release time to seconds
+        const releaseParts =
+          String(row.release_time)
+            .split(":")
+            .map(Number);
+
+        // Convert arrival time to seconds
+        const arrivalParts =
+          String(row.arrival_time)
+            .split(":")
+            .map(Number);
+
+        const releaseSeconds =
+          releaseParts[0] * 3600 +
+          releaseParts[1] * 60 +
+          releaseParts[2];
+
+        const arrivalSeconds =
+          arrivalParts[0] * 3600 +
+          arrivalParts[1] * 60 +
+          arrivalParts[2];
+
+
+        // Calculate flight time
+        let flightSeconds =
+          arrivalSeconds - releaseSeconds;
+
+        // Arrival after midnight
+        if (flightSeconds < 0) {
+          flightSeconds += 24 * 60 * 60;
+        }
+
+        flightMinutes =
+          flightSeconds / 60;
+
+
+        // Calculate meters per minute
+        if (flightMinutes > 0) {
+
+          const distanceMeters =
+            distanceKm * 1000;
+
+          speedMpm =
+            distanceMeters / flightMinutes;
+
+        }
+
+      }
+
+
+      // Add pigeon information to the race
+      raceMap.get(row.race_id).pigeons.push({
+
+        entry_id: row.entry_id,
+
+        ring_no: row.ring_no,
+
+        pigeon_name: row.pigeon_name,
+
+        arrival_time: row.arrival_time,
+
+        verified: row.verified,
+
+        distance_km:
+          distanceKm !== null
+            ? distanceKm.toFixed(3)
+            : null,
+
+        flight_minutes:
+          flightMinutes !== null
+            ? flightMinutes.toFixed(2)
+            : null,
+
+        speed_mpm:
+          speedMpm !== null
+            ? speedMpm.toFixed(2)
+            : null
+
+      });
+
+    }
+
+
+    const races = Array.from(raceMap.values());
+
+
     res.render("member-races", {
       user: req.session.user,
-      races: racesResult.rows
+      races
     });
+
 
   } catch (err) {
 
     console.error("MEMBER RACES ERROR:", err);
 
     res.status(500).send(err.message);
+
   }
+
 });
 
 /* =================================
