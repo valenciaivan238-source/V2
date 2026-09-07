@@ -1497,6 +1497,8 @@ app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
       );
     }
 
+    const arrivalTime = new Date().toTimeString().slice(0, 8);
+    
     // Get member linked to this account
     const userResult = await pool.query(
       `
