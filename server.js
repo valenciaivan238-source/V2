@@ -798,7 +798,7 @@ app.post("/races/:id/clocking", requireLogin, async (req, res) => {
 
     if (!entry_id || !verification_code) {
       return res.status(400).send(
-        "Entry and arrival time are required."
+        "Entry and verification code are required."
       );
     }
 
@@ -828,20 +828,22 @@ app.post("/races/:id/clocking", requireLogin, async (req, res) => {
       `,
       [entry_id]
     );
+
     if (existing.rows.length > 0) {
-  return res.status(400).send(
-    "Arrival time has already been submitted for this pigeon."
-  );
+      return res.status(400).send(
+        "Arrival time has already been submitted for this pigeon."
+      );
     }
-    catch (err) {
+
+    res.redirect(`/races/${raceId}/clocking`);
+
+  } catch (err) {
 
     console.error("SAVE CLOCKING ERROR:", err);
 
     res.status(500).send(err.message);
   }
 });
-
-
 /* VERIFY CLOCKING */
 app.post(
   "/races/:raceId/clocking/:entryId/verify",
