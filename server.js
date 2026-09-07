@@ -948,7 +948,7 @@ app.post("/races/:id/clocking", requireLogin, async (req, res) => {
 
     const {
       entry_id,
-      arrival_time
+      verification_code
     } = req.body;
 
     if (!entry_id || !arrival_time) {
