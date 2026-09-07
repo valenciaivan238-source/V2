@@ -1567,9 +1567,7 @@ app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
       );
     }
 
-    // Automatically record the server time
-const arrivalTime = new Date().toTimeString().slice(0, 8);
-
+   // Save server time as the arrival time
 await pool.query(
   `
   INSERT INTO clockings
@@ -1578,9 +1576,9 @@ await pool.query(
     arrival_time,
     verified
   )
-  VALUES($1,$2,FALSE)
+  VALUES($1, CURRENT_TIME, FALSE)
   `,
-  [entry_id, arrivalTime]
+  [entry_id]
 );
 
     res.send(`
