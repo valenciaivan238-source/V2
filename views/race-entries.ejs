@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>Race Entries</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
@@ -74,17 +73,13 @@
 
     <h1>Race Entries</h1>
 
-    <h2>
-        <%= race.name %>
-    </h2>
+    <h2><%= race.name %></h2>
 
     <p>
         Date: <%= race.race_date || "N/A" %>
     </p>
 
     <hr>
-
-    <!-- ADD PIGEON TO RACE -->
 
     <% if (user && (user.role === "organizer" || user.role === "admin")) { %>
 
@@ -97,9 +92,7 @@
                 action="/races/<%= race.id %>/entries"
             >
 
-                <label>
-                    Select Pigeon:
-                </label>
+                <label>Select Pigeon:</label>
 
                 <select name="pigeon_id" required>
 
@@ -123,23 +116,6 @@
 
                 <br>
 
-                <label>
-                    Verification Code:
-                </label>
-
-                <input
-                    type="text"
-                    name="verification_code"
-                    maxlength="5"
-                    minlength="5"
-                    pattern="[0-9]{5}"
-                    inputmode="numeric"
-                    placeholder="Enter 5-digit code"
-                    required
-                >
-
-                <br>
-
                 <button type="submit">
                     Add Pigeon to Race
                 </button>
@@ -150,16 +126,11 @@
 
     <% } %>
 
-
-    <!-- ENTERED PIGEONS -->
-
     <h3>Entered Pigeons</h3>
 
     <% if (entries.length === 0) { %>
 
-        <p>
-            No pigeons have been entered in this race yet.
-        </p>
+        <p>No pigeons have been entered in this race yet.</p>
 
     <% } else { %>
 
@@ -178,38 +149,23 @@
 
                 <tr>
 
-                    <td>
-                        <%= entry.ring_no %>
-                    </td>
+                    <td><%= entry.ring_no %></td>
+
+                    <td><%= entry.pigeon_name %></td>
+
+                    <td><%= entry.member_no %></td>
+
+                    <td><%= entry.owner %></td>
 
                     <td>
-                        <%= entry.pigeon_name %>
-                    </td>
-
-                    <td>
-                        <%= entry.member_no %>
-                    </td>
-
-                    <td>
-                        <%= entry.owner %>
-                    </td>
-
-<td>
-    <% if (user && (user.role === "admin" || user.role === "organizer")) { %>
-        <strong>
-            <%= entry.verification_code || "N/A" %>
-        </strong>
-    <% } else { %>
-        <span>Hidden</span>
-    <% } %>
-</td>                   
-
-                    <td>
-
                         <% if (user && (user.role === "organizer" || user.role === "admin")) { %>
-
-                            <form
-    
+                            <strong>
+                                <%= entry.verification_code || "N/A" %>
+                            </strong>
+                        <% } else { %>
+                            *****
+                        <% } %>
+                    </td>
 
                     <td>
 
