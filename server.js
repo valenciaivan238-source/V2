@@ -621,6 +621,7 @@ app.post("/races/:id/entries", requireLogin, async (req, res) => {
     const raceId = req.params.id;
     const { pigeon_id, verification_code } = req.body;
 
+    const verificationCode = String(verification_code).trim();
     if (!pigeon_id) {
       return res.status(400).send("Please select a pigeon.");
     }
