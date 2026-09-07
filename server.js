@@ -863,11 +863,7 @@ app.post(
       res.redirect(`/races/${raceId}/entries`);
 
     } catch (err) {
-      console.error("REMOVE ENTRY ERROR:", err);
-      res.status(500).send(err.message);
-    }
-  }
-);
+
 /* ================================
    CLOCKING
 ================================ */
