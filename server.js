@@ -828,39 +828,12 @@ app.post("/races/:id/clocking", requireLogin, async (req, res) => {
       `,
       [entry_id]
     );
-
     if (existing.rows.length > 0) {
-
-      await pool.query(
-        `
-        UPDATE clockings
-        SET arrival_time = $1,
-            verified = FALSE
-        WHERE entry_id = $2
-        `,
-        [arrival_time, entry_id]
-      );
-
-    } else {
-
-      await pool.query(
-        `
-        INSERT INTO clockings
-        (
-          entry_id,
-          arrival_time,
-          verified
-        )
-        VALUES($1,$2,FALSE)
-        `,
-        [entry_id, arrival_time]
-      );
-
+  return res.status(400).send(
+    "Arrival time has already been submitted for this pigeon."
+  );
     }
-
-    res.redirect(`/races/${raceId}/clocking`);
-
-  } catch (err) {
+    catch (err) {
 
     console.error("SAVE CLOCKING ERROR:", err);
 
