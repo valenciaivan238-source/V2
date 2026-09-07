@@ -1,201 +1,245 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Race Entries</title>
+    <title>Race Entries</title>
 
-  <link rel="stylesheet" href="/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 5px 0;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .form-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .delete {
+            color: red;
+        }
+
+        @media (max-width: 700px) {
+            table {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 6px;
+            }
+
+            input, select, button {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-  <div class="container">
+<div class="container">
 
     <h1>Race Entries</h1>
 
-    <h2><%= race.name %></h2>
-
-    <p>
-      <strong>Category:</strong>
-      <%= race.category || "N/A" %>
-    </p>
-
-    <p>
-      <strong>Release Point:</strong>
-      <%= race.release_point || "N/A" %>
-    </p>
-
-    <p>
-      <strong>Distance:</strong>
-      <%= race.distance_km || "N/A" %> KM
-    </p>
-
-    <p>
-      <strong>Race Date:</strong>
-      <%= race.race_date || "N/A" %>
-    </p>
-
-    <hr>
-
-    <h2>Add Pigeon</h2>
-
-    <form
-      action="/races/<%= race.id %>/entries"
-      method="POST"
-    >
-
-      <label for="pigeon_id">
-        Select Pigeon
-      </label>
-
-      <select
-        id="pigeon_id"
-        name="pigeon_id"
-        required
-      >
-
-        <option value="">
-          -- Select Pigeon --
-        </option>
-
-        <% pigeons.forEach(pigeon => { %>
-
-          <option value="<%= pigeon.id %>">
-            <%= pigeon.ring_no %>
-            -
-            <%= pigeon.name || "Unnamed" %>
-            -
-            <%= pigeon.owner %>
-            (<%= pigeon.member_no %>)
-          </option>
-
-        <% }) %>
-
-      </select>
-
-<br><br>
-
-<label for="verification_code">
-    5-Digit Verification Code
-</label>
-
-<br>
-
-<input
-    type="text"
-    id="verification_code"
-    name="verification_code"
-    placeholder="Enter 5 digits"
-    inputmode="numeric"
-    pattern="[0-9]{5}"
-    maxlength="5"
-    minlength="5"
-    required
->
-
-<br><br>
-
-<button type="submit">
-    Add to Race
-</button>
-
-    </form>
-
-    <hr>
-
     <h2>
-      Registered Pigeons
-      (<%= entries.length %>)
+        <%= race.name %>
     </h2>
+
+    <p>
+        Date: <%= race.race_date || "N/A" %>
+    </p>
+
+    <hr>
+
+    <!-- ADD PIGEON TO RACE -->
+
+    <% if (user && (user.role === "organizer" || user.role === "admin")) { %>
+
+        <div class="form-box">
+
+            <h3>Add Pigeon to Race</h3>
+
+            <form
+                method="POST"
+                action="/races/<%= race.id %>/entries"
+            >
+
+                <label>
+                    Select Pigeon:
+                </label>
+
+                <select name="pigeon_id" required>
+
+                    <option value="">
+                        -- Select Pigeon --
+                    </option>
+
+                    <% pigeons.forEach(pigeon => { %>
+
+                        <option value="<%= pigeon.id %>">
+
+                            <%= pigeon.ring_no %>
+                            -
+                            <%= pigeon.name %>
+                            -
+                            <%= pigeon.owner %>
+
+                        </option>
+
+                    <% }) %>
+
+                </select>
+
+                <br>
+
+                <label>
+                    Verification Code:
+                </label>
+
+                <input
+                    type="text"
+                    name="verification_code"
+                    maxlength="5"
+                    minlength="5"
+                    pattern="[0-9]{5}"
+                    inputmode="numeric"
+                    placeholder="Enter 5-digit code"
+                    required
+                >
+
+                <br>
+
+                <button type="submit">
+                    Add Pigeon to Race
+                </button>
+
+            </form>
+
+        </div>
+
+    <% } %>
+
+
+    <!-- ENTERED PIGEONS -->
+
+    <h3>Entered Pigeons</h3>
 
     <% if (entries.length === 0) { %>
 
-      <p>No pigeons have been entered in this race yet.</p>
+        <p>
+            No pigeons have been entered in this race yet.
+        </p>
 
     <% } else { %>
 
-      <table border="1" cellpadding="8" cellspacing="0">
-
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Member No.</th>
-            <th>Owner</th>
-            <th>Ring No.</th>
-            <th>Pigeon</th>
-            <th>Verification Code</th>
-            <th>Paid</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          <% entries.forEach((entry, index) => { %>
+        <table>
 
             <tr>
-
-              <td>
-                <%= index + 1 %>
-              </td>
-
-              <td>
-                <%= entry.member_no %>
-              </td>
-
-              <td>
-                <%= entry.owner %>
-              </td>
-
-              <td>
-                <%= entry.ring_no %>
-              </td>
-
-              <td>
-                <%= entry.pigeon_name || "Unnamed" %>
-              </td>
-
-              <td>
-             <%= entry.verification_code %>
-             </td>
-              
-              <td>
-                <%= entry.paid ? "YES" : "NO" %>
-              </td>
-
-              <td>
-
-                <form
-                  action="/races/<%= race.id %>/entries/<%= entry.id %>/delete"
-                  method="POST"
-                >
-
-                  <button type="submit">
-                    Remove
-                  </button>
-
-                </form>
-
-              </td>
-
+                <th>Ring No.</th>
+                <th>Pigeon</th>
+                <th>Member No.</th>
+                <th>Owner</th>
+                <th>Verification Code</th>
+                <th>Action</th>
             </tr>
 
-          <% }) %>
+            <% entries.forEach(entry => { %>
 
-        </tbody>
+                <tr>
 
-      </table>
+                    <td>
+                        <%= entry.ring_no %>
+                    </td>
+
+                    <td>
+                        <%= entry.pigeon_name %>
+                    </td>
+
+                    <td>
+                        <%= entry.member_no %>
+                    </td>
+
+                    <td>
+                        <%= entry.owner %>
+                    </td>
+
+                    <td>
+                        <strong>
+                            <%= entry.verification_code || "N/A" %>
+                        </strong>
+                    </td>
+
+                    <td>
+
+                        <% if (user && (user.role === "organizer" || user.role === "admin")) { %>
+
+                            <form
+                                method="POST"
+                                action="/races/<%= race.id %>/entries/<%= entry.id %>/delete"
+                                onsubmit="return confirm('Remove this pigeon from the race?');"
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="delete"
+                                >
+                                    Remove
+                                </button>
+
+                            </form>
+
+                        <% } %>
+
+                    </td>
+
+                </tr>
+
+            <% }) %>
+
+        </table>
 
     <% } %>
 
     <br>
 
     <a href="/races">
-      ← Back to Races
+        Back to Races
     </a>
 
-  </div>
+</div>
 
 </body>
 </html>
