@@ -1568,19 +1568,21 @@ app.post("/member/races/:raceId/arrival", requireLogin, async (req, res) => {
       );
     }
 
-    // Save arrival time
-    await pool.query(
-      `
-      INSERT INTO clockings
-      (
-        entry_id,
-        arrival_time,
-        verified
-      )
-      VALUES($1,$2,FALSE)
-      `,
-      [entry_id, arrival_time]
-    );
+    // Automatically record the server time
+const arrivalTime = new Date();
+
+await pool.query(
+  `
+  INSERT INTO clockings
+  (
+    entry_id,
+    arrival_time,
+    verified
+  )
+  VALUES($1,$2,FALSE)
+  `,
+  [entry_id, arrivalTime]
+);
 
     res.send(`
       <h2>Arrival Submitted Successfully</h2>
