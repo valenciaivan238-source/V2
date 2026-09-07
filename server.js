@@ -1398,7 +1398,7 @@ await pool.query(
     arrival_time,
     verified
   )
-  VALUES($1, CURRENT_TIME, FALSE)
+  VALUES($1, CURRENT_TIME, TRUE)
   `,
   [entry_id]
 );
