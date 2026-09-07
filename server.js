@@ -606,9 +606,9 @@ app.get("/races/:id/entries", requireLogin, async (req, res) => {
   }
 });
 
-
 /* ADD PIGEON TO RACE */
 app.post("/races/:id/entries", requireLogin, async (req, res) => {
+
   if (
     req.session.user.role !== "organizer" &&
     req.session.user.role !== "admin"
@@ -617,6 +617,7 @@ app.post("/races/:id/entries", requireLogin, async (req, res) => {
   }
 
   try {
+
     const raceId = req.params.id;
     const { pigeon_id } = req.body;
 
@@ -644,18 +645,32 @@ app.post("/races/:id/entries", requireLogin, async (req, res) => {
       return res.status(404).send("Pigeon not found");
     }
 
-    // Add entry
+    // Generate a unique 5-digit verification code
+    const verificationCode =
+      Math.floor(10000 + Math.random() * 90000).toString();
+
+    // Add entry with verification code
     await pool.query(
       `
-      INSERT INTO entries (race_id, pigeon_id)
-      VALUES ($1, $2)
+      INSERT INTO entries
+      (
+        race_id,
+        pigeon_id,
+        verification_code
+      )
+      VALUES($1, $2, $3)
       `,
-      [raceId, pigeon_id]
+      [
+        raceId,
+        pigeon_id,
+        verificationCode
+      ]
     );
 
     res.redirect(`/races/${raceId}/entries`);
 
   } catch (err) {
+
     console.error("ADD ENTRY ERROR:", err);
 
     // Same pigeon cannot be entered twice in the same race
@@ -668,7 +683,6 @@ app.post("/races/:id/entries", requireLogin, async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-
 
 /* REMOVE PIGEON FROM RACE */
 app.post("/races/:raceId/entries/:entryId/delete", requireLogin, async (req, res) => {
